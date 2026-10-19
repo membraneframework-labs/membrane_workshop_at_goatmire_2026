@@ -15,7 +15,7 @@
 - Codec = two programs. The encoder compresses raw media, the decoder turns it back into frames or audio.
 - Lossy compression throws away what you can't see or hear, and what was already in the previous frame. Most codecs are lossy, not all.
 - Video: H.264 (the most widespread), VP8 (open, royalty-free, WebRTC). Audio: MP3 (the classic), AAC (its successor), Opus (video calls).
-- Transcoding = decode → raw → encode. In the middle you hold raw media: that's where you can look at it, change it, or play it.
+- Transcoding = decode → raw → encode. In the middle you hold raw media: that's where you can look at it or change it.
 - In Membrane, codecs are elements shipped in plugins; `Membrane.Transcoder` picks the decoder and encoder for you, you declare the output format.
 
 ---
@@ -29,8 +29,8 @@
 > megabytes for a single frame. At thirty frames a second, you're at ond hundred eighty-seven
 > megabytes every second.
 
-> A two-hour movie would be one point three terabytes. Nothing handles that comfortably: not your
-> disk, not your network, not your memory {this enumeration is too AI-style}. So something has to shrink it, and that something is a codec.
+> A two-hour movie would be one point three terabytes. You can't store that, let alone stream it.
+> So something has to shrink it, and that something is a codec.
 
 **[0:25] Bumper**
 
@@ -99,25 +99,29 @@
 **[3:05] On screen, large: "In the middle, you hold raw media."**
 
 > In the middle, you hold raw media. That's the only place where you can actually look at the
-> picture, change it, or play it {if you play media, it is not a place between encoding and decoding}. Encoded data is opaque, you can't do anything with it.
+> picture or change it. Encoded data is opaque, you can't do much with it.
 > So everything interesting you can do to video, like improving colors, or running
 > AI inference, happens on the raw frames between a decoder and an encoder.
 
 **[3:25] In Membrane**
 
-> So how does this look in Membrane? Membrane is an open-source multimedia framework written in
-> Elixir. In Membrane, you build a media application as a pipeline: a chain of elements, where
-> each element does one thing with the stream and passes it on. Every box from the diagrams {what diagram???} is an
-> element: reading the file, the decoder, the encoder, writing the result.
+> So how does this look in Membrane? 
+> Well, first, let me tell you what Membrane is. Membrane is an open-source multimedia framework written
+> in Elixir. In Membrane, you build a media application as a pipeline: a chain of elements, where
+> each element does one thing with the stream and passes it on. A decoder is an element, an
+> encoder is an element, and so is reading a file or writing one.
 
 > You could wire a decoder and an encoder together yourself, but Membrane has a component for
-> exactly the box labelled "transcoding" on the diagram. It's called the Transcoder. Here's a
+> exactly the box labelled "transcoding" on the diagram we just saw. It's called the Transcoder. Here's a
 > complete pipeline that takes an MP3 file and produces an MP4 file with AAC audio inside:
 
 **[3:50] Code on screen. Highlight the two transcoder lines. Next to it, the audio transcoding diagram from the slide, with the "transcoding" box aligned with the highlighted lines.**
 
 ```elixir
-child(:source, %Membrane.File.Source{location: "input.mp3", content_format: Membrane.MPEGAudio})
+child(:source, %Membrane.File.Source{
+  location: "input.mp3", 
+  content_format: Membrane.MPEGAudio
+})
 |> child(:transcoder, Membrane.Transcoder)
 |> via_out(:output,
   options: [output_stream_format: %Membrane.Transcoder.OutputFormat.AAC{config: :esds}]
@@ -126,16 +130,22 @@ child(:source, %Membrane.File.Source{location: "input.mp3", content_format: Memb
 |> child(:sink, %Membrane.File.Sink{location: "output.mp4"})
 ```
 
-> The first line reads the MP3 file. The last two lines pack the result into an MP4 file, and
-> that's what the next episode is about. The two highlighted lines are the Transcoder, and the
-> only thing you tell it is what should come out: AAC.
+**Code slides for this walkthrough: `code-slides/` in this directory (VS Code Dark+ colouring, one slide per step: full snippet, source, transcoder, muxer and sink). Rendered PNGs in `code-slides/export/`.**
+
+> Let's go through it top to bottom. First, we have to pull the audio stream into our pipeline.
+> In this case, we read it from a file. Next, the Transcoder, and the only thing you tell it is what
+> should come out: AAC. The Transcoder will recognize that the format of its input stream is MP3 so it 
+> will know that it has to apply MP3 decoding on it.
+
+> Then an MP4 muxer, which packs the AAC into an MP4 container, and a file
+> sink, which writes it to disk. If you don't know what a container is yet, don't worry. We will explain it in the next episode.
 
 > So where did the raw audio go? Inside the Transcoder. It looks at what comes in, MP3 here,
-> and builds the box from the diagram internally: an MP3 decoder, raw audio, an AAC encoder.
+> and builds that transcoding box internally: an MP3 decoder, raw audio, an AAC encoder.
 > You never see the raw step, and most of the time you don't need to. When you do, you split it
-> into two Transcoders and put your own element in between, and I'll show that in another episode.
+> into two Transcoders and put your own element in between.
 
-> Don't worry about the syntax yet, there's an episode about how these pipelines are described.
+**Code on screen, the same snippet with the Transcoder split in two and a custom element in between. Highlight the three middle lines.**
 
 **[4:30] Takeaway + next**
 

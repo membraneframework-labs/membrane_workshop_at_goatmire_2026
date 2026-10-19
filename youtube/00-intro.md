@@ -18,7 +18,8 @@
 
 **[0:46] On camera**
 
-> Short videos, one idea each. Every video starts with the concept itself, the part that holds
+> We will present you a bunch of short vidoes, each explaining a single idea.
+>  Every video starts with the concept itself, the part that holds
 > no matter what language or tool you use. Then I'll show you how the same thing looks in
 > Membrane, usually in a few lines of Elixir, so it stops being abstract.
 

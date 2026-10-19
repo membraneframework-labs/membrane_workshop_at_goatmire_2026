@@ -26,11 +26,11 @@
 
 > Let's do some quick math. A full HD frame is nineteen-twenty by ten-eighty pixels, so about
 > two million pixels. Each pixel needs three bytes, for red, green and blue. That's about six
-> megabytes for a single frame. At thirty frames a second, you're at a hundred and eighty-seven
+> megabytes for a single frame. At thirty frames a second, you're at ond hundred eighty-seven
 > megabytes every second.
 
 > A two-hour movie would be one point three terabytes. Nothing handles that comfortably: not your
-> disk, not your network, not your memory. So something has to shrink it, and that something is a codec.
+> disk, not your network, not your memory {this enumeration is too AI-style}. So something has to shrink it, and that something is a codec.
 
 **[0:25] Bumper**
 
@@ -62,13 +62,12 @@
 > it's mostly the same blue, so you don't need to store every pixel separately.
 > The second one is that frames next to each other look alike too. If I'm just talking to the
 > camera, thirty frames of that are thirty nearly identical pictures, so you store the first one
-> and then only where things moved. That's what the arrows on the screen are: the encoder cut the
-> frame into small blocks and, for each block, recorded where it went.
+> and then only where things moved. 
 > The third trick is that your eyes and ears aren't perfect. You can't tell apart two shades of
 > green that differ by one bit, and you can't hear a quiet sound right after a loud one, so the
 > encoder just doesn't keep them.
 
-> That third trick is what makes most codecs lossy. What comes out of the decoder usually isn't
+> That third trick is what makes most codecs lossy. What comes out of the encoder usually isn't
 > exactly what went in, but just close enough that you don't notice. 
 
 **[2:00] Names. The codec table from the slide, with Opus added.**
@@ -76,8 +75,8 @@
 > Let's go through a few names you'll run into. For video there's H.264. It's by far the most
 > widely supported video format out there, almost every device you own can decode it. Then there's VP8,
 > which is open and royalty-free, and that's what you'll meet in WebRTC, so in Google Meet or Teams calls.
-> There are newer ones too, H.265, VP9, AV1. They compress better and cost more CPU, but the idea
-> is the same.
+> There are newer ones too, like H.265, VP9 or AV1. They compress better and are heavier on CPU or GPU,
+> but the idea is the same.
 
 > For audio there's MP3, the classic one, and AAC, which was designed as its successor and is
 > what you usually find inside an MP4 file. And there's Opus, which is what live calls use
@@ -85,7 +84,8 @@
 
 > One thing to keep in mind: a coding format is not a file format. H.264 describes a stream of
 > bytes, and how that stream ends up in a file is a separate question. We will cover this topic in
-> the next episode. MP3 is a bit special here, and you'll see why.
+> the next episode. MP3 is a bit special here, because you can just put it in the file, with to extra
+> container needed.
 
 **[2:45] Transcoding. Both diagrams from the slide: "VP8 stream → VP8 decoder → raw video frames → H.264 encoder → H.264 stream", and below it "MP3 stream → MP3 decoder → raw audio samples → AAC encoder → AAC stream". The decoder, raw media and encoder are grouped in a box labelled "transcoding".**
 
@@ -99,15 +99,15 @@
 **[3:05] On screen, large: "In the middle, you hold raw media."**
 
 > In the middle, you hold raw media. That's the only place where you can actually look at the
-> picture, change it, or play it. Encoded data is opaque, you can't do anything with it.
+> picture, change it, or play it {if you play media, it is not a place between encoding and decoding}. Encoded data is opaque, you can't do anything with it.
 > So everything interesting you can do to video, like improving colors, or running
-> AI inference on the frames, happens on the raw frames between a decoder and an encoder.
+> AI inference, happens on the raw frames between a decoder and an encoder.
 
 **[3:25] In Membrane**
 
 > So how does this look in Membrane? Membrane is an open-source multimedia framework written in
 > Elixir. In Membrane, you build a media application as a pipeline: a chain of elements, where
-> each element does one thing with the stream and passes it on. Every box from the diagrams is an
+> each element does one thing with the stream and passes it on. Every box from the diagrams {what diagram???} is an
 > element: reading the file, the decoder, the encoder, writing the result.
 
 > You could wire a decoder and an encoder together yourself, but Membrane has a component for

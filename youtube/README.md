@@ -48,18 +48,18 @@ Everything in these files is in English; the spoken lines are the blockquoted pa
 | # | File | Working title | Kind | Length | Source |
 |---|------|---------------|------|--------|--------|
 | 00 | `00-intro.md` | Multimedia with Membrane 101 (series intro) | TRAILER | 1-2 min | |
-| 01 | `01-codecs.md` | Why raw video doesn't fit anywhere: codecs | CONCEPT | 4-5 min | Ch. 1 slides "Codecs", "Transcoding" |
-| 02 | `02-containers.md` | MP4 is not a video format: containers, muxing, demuxing | CONCEPT | 4-5 min | Ch. 1 slides "Containers", "Muxing and demuxing" |
-| 03 | `03-membrane-basics.md` | Media processing is a graph: elements, pads and plugins | MEMBRANE | 5-6 min | Ch. 1 slides "Membrane in one slide", "Three kinds of elements" |
-| 04 | `04-describing-a-pipeline.md` | Describing a pipeline in code: callbacks, actions and the spec | MEMBRANE | 6-7 min | Ch. 1 slides "Pipelines" … "Knowing when to stop", DEEP_DIVE Ch. 1 "Pipelines" |
-| 05 | `05-raw-video.md` | What a video frame looks like in memory | CONCEPT | 5-6 min | Ch. 2 slides "Raw video and RGB", "Color inversion", DEEP_DIVE Ch. 2 |
-| 06 | `06-writing-an-element.md` | Anatomy of a Membrane element: pads, callbacks, buffers | MEMBRANE | 6-7 min | Ch. 2 slides "Defining own Elements" … "handle_buffer", DEEP_DIVE Ch. 2 "Creating elements", BONUS (callback context) |
-| 07 | `07-timestamps.md` | PTS, DTS and why your video plays too fast | CONCEPT | 6-7 min | Ch. 3 slides "Timestamps" … "Offline and online processing", DEEP_DIVE Ch. 3 "Timestamps" |
-| 08 | `08-flow-control.md` | Backpressure: who sets the pace in a media pipeline | CONCEPT+MEMBRANE | 6-8 min | Ch. 3 slides "Flow control" … "Demand and redemand", DEEP_DIVE Ch. 3 "Flow control" |
-| 09 | `09-reading-a-real-element.md` | Reading a real element: switching between two streams | MEMBRANE | 7-8 min | Ch. 3 slides "Task 3.2" hints, `lib/stream_switcher.ex` on `chapter-3-checkpoint` (as a finished example to read) |
-| 10 | `10-webrtc.md` | WebRTC in 6 minutes: signaling, ICE, RTP | CONCEPT | 5-6 min | Ch. 4 slide "WebRTC", DEEP_DIVE Ch. 4 "WebRTC" |
-| 11 | `11-live-streams.md` | Why live streams are different: pace, push and the toilet | CONCEPT+MEMBRANE | 5-7 min | DEEP_DIVE Ch. 4 "Live streams", Ch. 4 BONUS hints (toilet) |
-| 12 | `12-composing-pipelines.md` | Bins, dynamic pads and notifications: composing pipelines | MEMBRANE | 6-7 min | Ch. 4 slides "Bins", "Boombox", "Child notifications", Ch. 1 BONUS hints (dynamic pads, `:new_tracks`) |
+| 01 | `01-codecs/scenario.md` | Why raw video doesn't fit anywhere: codecs | CONCEPT | 6-7 min | Ch. 1 slides "Codecs", "Transcoding" |
+| 02 | `02-containers/scenario.md` | MP4 is not a video format: containers, muxing, demuxing | CONCEPT | 5-6 min | Ch. 1 slides "Containers", "Muxing and demuxing" |
+| 03 | `03-membrane-basics/scenario.md` | Media processing is a graph: elements, pads and plugins | MEMBRANE | 5-6 min | Ch. 1 slides "Membrane in one slide", "Three kinds of elements" |
+| 04 | `04-describing-a-pipeline/scenario.md` | Describing a pipeline in code: callbacks, actions and the spec | MEMBRANE | 6-7 min | Ch. 1 slides "Pipelines" … "Knowing when to stop", DEEP_DIVE Ch. 1 "Pipelines" |
+| 05 | `05-raw-video/scenario.md` | What a video frame looks like in memory | CONCEPT | 5-6 min | Ch. 2 slides "Raw video and RGB", "Color inversion", DEEP_DIVE Ch. 2 |
+| 06 | `06-writing-an-element/scenario.md` | Anatomy of a Membrane element: pads, callbacks, buffers | MEMBRANE | 6-7 min | Ch. 2 slides "Defining own Elements" … "handle_buffer", DEEP_DIVE Ch. 2 "Creating elements", BONUS (callback context) |
+| 07 | `07-timestamps/scenario.md` | PTS, DTS and why your video plays too fast | CONCEPT | 6-7 min | Ch. 3 slides "Timestamps" … "Offline and online processing", DEEP_DIVE Ch. 3 "Timestamps" |
+| 08 | `08-flow-control/scenario.md` | Backpressure: who sets the pace in a media pipeline | CONCEPT+MEMBRANE | 6-8 min | Ch. 3 slides "Flow control" … "Demand and redemand", DEEP_DIVE Ch. 3 "Flow control" |
+| 09 | `09-reading-a-real-element/scenario.md` | Reading a real element: switching between two streams | MEMBRANE | 7-8 min | Ch. 3 slides "Task 3.2" hints, `lib/stream_switcher.ex` on `chapter-3-checkpoint` (as a finished example to read) |
+| 10 | `10-webrtc/scenario.md` | WebRTC in 6 minutes: signaling, ICE, RTP | CONCEPT | 5-6 min | Ch. 4 slide "WebRTC", DEEP_DIVE Ch. 4 "WebRTC" |
+| 11 | `11-live-streams/scenario.md` | Why live streams are different: pace, push and the toilet | CONCEPT+MEMBRANE | 5-7 min | DEEP_DIVE Ch. 4 "Live streams", Ch. 4 BONUS hints (toilet) |
+| 12 | `12-composing-pipelines/scenario.md` | Bins, dynamic pads and notifications: composing pipelines | MEMBRANE | 6-7 min | Ch. 4 slides "Bins", "Boombox", "Child notifications", Ch. 1 BONUS hints (dynamic pads, `:new_tracks`) |
 
 CONCEPT = a multimedia concept, true regardless of tool, with a short Membrane segment.
 MEMBRANE = a piece of the framework, opened with the general idea behind it.
@@ -110,6 +110,10 @@ one on Thursday (01+02 → 03+04, 05 → 06, 07+08 → 09, 10 → 11+12).
 - **Cards / end screen**: always the next episode + the playlist.
 
 ## How to work with this directory
+
+Layout: `00-intro.md` is a single file. Every other episode is a directory, `NN-slug/`, with the
+script in `scenario.md` and, optionally, resources used in that episode next to it (diagrams,
+screenshots, sample code, exported slides).
 
 1. Read Version A of an episode to see the full flow and check the facts.
 2. Record from Version B. If you don't know what to say at some point, Version A has a ready sentence.

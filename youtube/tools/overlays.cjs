@@ -20,7 +20,9 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 :root { --navy:${colors.navy}; --blue:${colors.blue}; --soft:${colors.soft}; --ink:${colors.ink}; }
 html, body { margin:0; background:transparent; }
-body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:40px; display:inline-block; }
+body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:0; margin:0; }
+.wrap { display:inline-block; padding:44px; }
+.wrap.tight { padding:16px; }
 .g { display:inline-block; }
 .card { background:#fff; border-radius:28px; padding:44px 56px; box-shadow:0 10px 36px rgba(0,26,114,.18); }
 .bare { padding:0; }
@@ -47,6 +49,8 @@ body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:40px; displ
 .box, .stream { font-size:28px; line-height:1.25; text-align:center; padding:16px 26px; font-weight:500; }
 .box { background:var(--blue); border:2px solid var(--navy); }
 .box.plain { background:#fff; }
+.box.hl { box-shadow:0 0 0 7px var(--soft), 0 0 0 11px var(--navy); }
+.box.dim, .stream.dim { opacity:.35; }
 .stream { border:2px dashed var(--navy); background:#fff; transform:skewX(-14deg); margin:0 8px; }
 .stream > span { display:inline-block; transform:skewX(14deg); }
 .arrow { width:52px; height:16px; flex:none; }
@@ -77,16 +81,16 @@ const buildup = (lines, n, cls = 'math') =>
 const numbered = (lines, n) =>
   `<div class="list">${lines.map((l, i) => `<div class="${i < n ? '' : 'hidden'}"><span class="n">${i + 1}</span>${l}</div>`).join('')}</div>`
 
-async function render(graphics, outDir, extra) {
+async function render(graphics, outDir, extra, extraCss = '') {
   const browser = await chromium.launch()
   const page = await browser.newPage({ deviceScaleFactor: SCALE, viewport: { width: 2400, height: 1600 } })
   for (const variant of ['on-card', 'no-card']) {
     fs.mkdirSync(path.join(outDir, variant), { recursive: true })
     for (const [name, html] of graphics) {
-      await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
-        <body><div class="g ${variant === 'on-card' ? 'card' : 'bare'}">${html}</div></body></html>`)
+      await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${css}${extraCss}</style></head>
+        <body><div class="wrap ${variant === 'on-card' ? '' : 'tight'}"><div class="g ${variant === 'on-card' ? 'card' : 'bare'}">${html}</div></div></body></html>`)
       await page.evaluate(() => document.fonts.ready)
-      const el = await page.$('.g')
+      const el = await page.$('.wrap')
       await el.screenshot({ path: path.join(outDir, variant, `${name}.png`), omitBackground: true })
       process.stdout.write(`${variant}/${name}.png\n`)
     }

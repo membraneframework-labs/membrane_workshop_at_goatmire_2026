@@ -284,13 +284,6 @@ hand the draft to the reviewer.
 and returns a numbered list of findings, each with the exact quoted line and a proposed
 replacement. No summaries, no praise.
 
-**Reviewers: focus on what the author actually reads aloud.** That is the blockquoted text in
-Version A, the lines starting with `> `. Those are the only words the viewer will hear, so that is
-where the findings should be. Everything else in the file is scaffolding: the bold `**[m:ss] …**`
-stage directions (instructions for the editor), the metadata table, the "Facts that must land"
-checklist and Version B. Check the scaffolding only for one thing, that it agrees with the spoken
-lines (right overlay file, right number of build-up steps, same terms); don't polish its wording.
-
 1. *As a first-time viewer:* someone with no multimedia background watching this cold. Where would
    they be lost, where does a term appear before it is explained, where does the script assume
    they remember something from three minutes ago, what sentence is unclear.

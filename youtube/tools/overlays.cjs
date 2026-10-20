@@ -49,8 +49,21 @@ body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:0; margin:0
 .box, .stream { font-size:28px; line-height:1.25; text-align:center; padding:16px 26px; font-weight:500; }
 .box { background:var(--blue); border:2px solid var(--navy); }
 .box.plain { background:#fff; }
-.box.hl { box-shadow:0 0 0 7px var(--soft), 0 0 0 11px var(--navy); }
 .box.dim, .stream.dim { opacity:.35; }
+
+/* vertical pipelines: data flows top to bottom, video branch left, audio right */
+.vcols { display:flex; gap:90px; align-items:flex-end; }
+.vcol { display:flex; flex-direction:column; align-items:center; }
+.vcol .box, .vcol .stream { width:360px; box-sizing:border-box; }
+.vcol .box { height:112px; display:flex; flex-direction:column; justify-content:center; padding:0 20px; }
+.vcol .stream { margin:0; }
+.varrow { width:16px; height:40px; flex:none; }
+.vmerge { flex:none; display:block; }
+.box small { display:block; font-size:21px; font-weight:400; opacity:.8; margin-top:2px; }
+/* step highlight (the agreed style): current element navy, everything else at 70 % */
+.hlC .box.hl { background:var(--navy); color:#fff; box-shadow:none; }
+.hlC .box.hl small { opacity:.9; }
+.hlC .box:not(.hl), .hlC .stream, .hlC .varrow, .hlC .vmerge { opacity:.7; }
 .stream { border:2px dashed var(--navy); background:#fff; transform:skewX(-14deg); margin:0 8px; }
 .stream > span { display:inline-block; transform:skewX(14deg); }
 .arrow { width:52px; height:16px; flex:none; }
@@ -67,6 +80,19 @@ body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:0; margin:0
 .pill b { color:var(--navy); font-weight:700; }
 `
 
+const varrow = `<svg class="varrow" viewBox="0 0 16 40"><line x1="8" y1="0" x2="8" y2="28" stroke="${colors.navy}" stroke-width="2"/><polygon points="2,26 8,40 14,26" fill="${colors.navy}"/></svg>`
+// two columns (centres 450 px apart, matching .vcols gap + .vcol width) merging into one point below
+const vmerge = `<svg class="vmerge" width="450" height="80" viewBox="0 0 450 80">
+  <path d="M0,0 C0,45 225,30 225,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <path d="M450,0 C450,45 225,30 225,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <polygon points="219,66 225,80 231,66" fill="${colors.navy}"/></svg>`
+// one point above splitting into two columns
+const vsplit = `<svg class="vmerge" width="450" height="80" viewBox="0 0 450 80">
+  <path d="M225,0 C225,40 0,30 0,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <path d="M225,0 C225,40 450,30 450,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <polygon points="-6,66 0,80 6,66" fill="${colors.navy}"/><polygon points="444,66 450,80 456,66" fill="${colors.navy}"/></svg>`
+// vertical chain: vchain(stream('in.ivf'), box('File.Source'), box('Transcoder<small>VP8 → H.264</small>'))
+const vchain = (...parts) => `<div class="vcol">${parts.join(varrow)}</div>`
 const arrow = `<svg class="arrow" viewBox="0 0 52 16"><line x1="0" y1="8" x2="40" y2="8" stroke="${colors.navy}" stroke-width="2"/><polygon points="38,2 52,8 38,14" fill="${colors.navy}"/></svg>`
 const box = (t, cls = '') => `<div class="box ${cls}">${t}</div>`
 const stream = t => `<div class="stream"><span>${t}</span></div>`
@@ -99,4 +125,4 @@ async function render(graphics, outDir, extra, extraCss = '') {
   await browser.close()
 }
 
-module.exports = { colors, css, arrow, box, stream, group, row, stack, chain, buildup, numbered, render }
+module.exports = { colors, css, arrow, box, stream, group, row, stack, chain, buildup, numbered, varrow, vmerge, vsplit, vchain, render }

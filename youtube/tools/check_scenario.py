@@ -90,6 +90,25 @@ def main(path):
     if "images/" not in src:
         notes.append("no pointer to images/ in stage directions")
 
+    # images/README.md times vs stage directions
+    import os
+    readme = os.path.join(os.path.dirname(os.path.abspath(path)), "images", "README.md")
+    if os.path.exists(readme):
+        direction_times = {}
+        for line in body.splitlines():
+            m2 = re.match(r"\*\*\[(\d+:\d\d)\]", line)
+            if not m2:
+                continue
+            for f in re.findall(r"`(\d\d-[a-z0-9-]+?)(?:-\d)?\.png`", line):
+                direction_times.setdefault(f, m2.group(1))
+        for row in open(readme, encoding="utf-8"):
+            m3 = re.match(r"\| `(\d\d-[a-z0-9-]+?)(?:-\d)?`[^|]*\| ([^|]*)\|", row)
+            if not m3:
+                continue
+            name, cell = m3.group(1), m3.group(2)
+            if name in direction_times and direction_times[name] not in cell:
+                problems.append(f"images/README.md: `{name}` says {cell.strip()!r}, script says {direction_times[name]}")
+
     for n in notes:
         print("note:", n)
     for p in problems:

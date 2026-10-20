@@ -5,7 +5,8 @@ Series plan and scripts. The knowledge comes from the Goatmire 2026 workshop mat
 the workshop: no tasks, no exercises, no project built across episodes. Each episode explains
 one thing and stands on its own.
 
-Every episode has its own file in this directory, always in two versions:
+Every episode has its own directory here (`NN-slug/scenario.md`, plus `images/` and `graphics/`
+for the overlay graphics); the intro is a single file. Every script comes in two versions:
 
 - **Version A (detailed)**: a full script with timing, spoken lines and what should be
   on screen. Read it 1:1 or lift specific phrasings from it.
@@ -28,7 +29,8 @@ Everything in these files is in English; the spoken lines are the blockquoted pa
   nobody types, nothing is "left for you to finish". No checkpoints, no "our solution",
   no "last episode we built".
 - **Content marketing without selling.** Membrane shows up as "and this is how it looks in
-  practice", not as a product. One CTA at the end: repo + star + next episode.
+  practice", not as a product. No "repo" or "star" in the spoken text; links live in the
+  description. The ending names the next episode's topic, nothing more.
 - **Self-contained episodes.** Cross-references ("timestamps are episode 7") are fine, dependencies
   are not. Someone landing on episode 8 from search must be able to follow it.
 
@@ -41,7 +43,7 @@ Everything in these files is in English; the spoken lines are the blockquoted pa
 | 0:25-0:45 | **Promise** | One sentence: what the viewer will know after this episode. |
 | ~60% | **The concept** | Diagrams, analogies, one concrete numeric example. |
 | ~30% | **In Membrane** | One finished example, read through. Snippet or short clip. |
-| last 30 s | **Takeaway + next** | One sentence to remember, teaser of the next episode, repo link. |
+| last 30 s | **Takeaway + next** | One sentence to remember, then the next episode's topic. |
 
 ## Episode list
 
@@ -96,7 +98,8 @@ one on Thursday (01+02 → 03+04, 05 → 06, 07+08 → 09, 10 → 11+12).
   used in the scripts (the transcoding spec, `ColorInverter`, `StreamSwitcher`, the Boombox
   pipeline). They're used as something to show on screen, never referred to by name in the videos.
 - **Assets for demo clips**: Big Buck Bunny (`bbb_vp8.ivf`, `bbb.mp3`), 480×270 at 25 fps,
-  32 s. CC BY 3.0 (Blender Foundation), credit in the description.
+  32 s. CC BY 3.0 (Blender Foundation). Fine to play in a terminal demo with a credit in the
+  description; not used for stills or overlays (those are generated, licence-free).
 - **Tools for showing results**: `ffplay`, `ffprobe`, `xxd`, an SDL window, a browser tab.
 
 ## YouTube metadata (template)
@@ -104,17 +107,36 @@ one on Thursday (01+02 → 03+04, 05 → 06, 07+08 → 09, 10 → 11+12).
 - **Title**: the phrase someone types + the promise. "What is a video codec? H.264, VP8, AAC
   explained (Multimedia 101 #1)". Series number at the end, not the start.
 - **Description**: 2 sentences on what, then chapters with timestamps (YouTube turns them into
-  chapters), repo link, previous and next episode, membrane.stream. Big Buck Bunny credit.
+  chapters), repo link, previous and next episode, membrane.stream. Big Buck Bunny credit when
+  the clip appears.
 - **Pinned comment**: repo link.
 - **Thumbnail**: one object + 3-4 words. E.g. episode 02: a file icon with "MP4 ≠ codec".
 - **Cards / end screen**: always the next episode + the playlist.
 
 ## How to work with this directory
 
-Layout: `00-intro.md` is a single file. Every other episode is a directory, `NN-slug/`, with the
-script in `scenario.md` and, optionally, resources used in that episode next to it (diagrams,
-screenshots, sample code, exported slides).
+Layout: `00-intro.md` is a single file. Every other episode is a directory, `NN-slug/`, with:
+
+- `scenario.md`: the script (Version A and B). Episode 01 is the approved reference.
+- `images/`: overlay PNGs for the editor, transparent, in `on-card/` and `no-card/` variants,
+  with a `README.md` mapping each file to a timestamp in the script.
+- `graphics/render.cjs`: the script that draws those PNGs, built on `tools/overlays.cjs`.
+- `notes/`: optional working material (fact sheets, review notes).
+
+Recording:
 
 1. Read Version A of an episode to see the full flow and check the facts.
 2. Record from Version B. If you don't know what to say at some point, Version A has a ready sentence.
-3. Every episode has a "Facts that must land" section. That's the checklist for editing.
+3. Code snippets are shown from the Keynote presentation; copy them from the fenced blocks in the script.
+
+Writing or revising with an agent: the project skill `.claude/skills/episode-scenario/SKILL.md`
+holds the voice rules, the fact-checking protocol, the writer/reviewer loop and the graphics
+pipeline. Point the agent at it ("use the episode-scenario skill on episode 02"). Review by
+writing `{comments}` straight into `scenario.md`, then ask the agent to apply them.
+
+Tools:
+
+- `python3 tools/check_scenario.py NN-slug/scenario.md`: spoken word count and minutes, leftover
+  comments, banned phrases, staccato runs, non-English characters.
+- `cd ../presentation && NODE_PATH=node_modules node ../youtube/NN-slug/graphics/render.cjs`:
+  re-render an episode's overlays (needs `npm install` in `presentation/` once).

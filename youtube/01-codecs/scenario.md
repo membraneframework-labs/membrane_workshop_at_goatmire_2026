@@ -7,16 +7,7 @@
 | SEO title | "What is a video codec? H.264, VP8, AAC and MP3 explained (Multimedia 101 #1)" |
 | Keywords | what is a codec, codec vs container, encoder decoder, transcoding, h264 vs vp8, aac vs mp3 |
 | Source | Ch. 1 slides "Codecs", "Encoding, decoding, transcoding" |
-| On screen | The 1920×1080×3×30 arithmetic built up on screen while you say it. The compression ratio as numbers. The three-trick enumeration, with a blue sky photo and a frame with motion vectors (`ffplay -flags2 +export_mvs -vf codecview=mv=pf+bf+bb file.mp4`). The transcoding diagrams from the slide (video and audio). One complete `Membrane.Transcoder` example at the end (MP3 → AAC in MP4), transcoder lines highlighted, with the audio diagram next to the code. |
-
-## Facts that must land
-
-- 1920 × 1080 × 3 bytes × 30 fps ≈ 187 MB/s. A two-hour movie ≈ 1.3 TB.
-- Codec = two programs. The encoder compresses raw media, the decoder turns it back into frames or audio.
-- Lossy compression throws away what you can't see or hear, and what was already in the previous frame. Most codecs are lossy, not all.
-- Video: H.264 (the most widespread), VP8 (open, royalty-free, WebRTC). Audio: MP3 (the classic), AAC (its successor), Opus (video calls).
-- Transcoding = decode → raw → encode. In the middle you hold raw media: that's where you can look at it or change it.
-- In Membrane, codecs are elements shipped in plugins; `Membrane.Transcoder` picks the decoder and encoder for you, you declare the output format.
+| On screen | Overlays from `images/` (see `images/README.md` for the file ↔ timestamp map): the arithmetic built up in four steps, the compression ratio, the three tricks built up in three steps with a blue sky next to the first, the codec names, the transcoding diagrams (video, audio, both), the "raw media" card, the pipeline of elements, the Transcoder box, the takeaway. Code comes from the Keynote presentation. |
 
 ---
 
@@ -52,8 +43,7 @@
 > megabyte per second for a stream that still looks fine. That's almost four hundred times smaller.
 
 **[1:15] How is that possible? An enumeration builds up on screen, one line per trick as you reach it:**
-**1. Neighbour pixels are similar. 2. Neighbour frames are similar. 3. Human senses are not perfect.**
-**Next to the first line: a photo of a blue sky. Next to the second: a video frame with the macroblock grid and motion vectors drawn over it (ffplay with the codecview filter), so the viewer sees the encoder tracking what moved.**
+**1. Neighbour pixels are similar (blue sky next to it). 2. Neighbour frames are similar. 3. Human senses are not perfect.**
 
 > So how do you throw away ninety-nine percent of the data and still get a picture? There are
 > basically three tricks.
@@ -70,7 +60,7 @@
 > That third trick is what makes most codecs lossy. What comes out of the encoder usually isn't
 > exactly what went in, but just close enough that you don't notice. 
 
-**[2:00] Names. The codec table from the slide, with Opus added.**
+**[2:00] Names. The codec table from the slide.**
 
 > Let's go through a few names you'll run into. For video there's H.264. It's by far the most
 > widely supported video format out there, almost every device you own can decode it. Then there's VP8,
@@ -115,22 +105,8 @@
 > exactly the box labelled "transcoding" on the diagram we just saw. It's called the Transcoder. Here's a
 > complete pipeline that takes an MP3 file and produces an MP4 file with AAC audio inside:
 
-**[3:50] Code on screen. Highlight the two transcoder lines. Next to it, the audio transcoding diagram from the slide, with the "transcoding" box aligned with the highlighted lines.**
+**[3:50] Keynote presentation.**
 
-```elixir
-child(:source, %Membrane.File.Source{
-  location: "input.mp3", 
-  content_format: Membrane.MPEGAudio
-})
-|> child(:transcoder, Membrane.Transcoder)
-|> via_out(:output,
-  options: [output_stream_format: %Membrane.Transcoder.OutputFormat.AAC{config: :esds}]
-)
-|> child(:muxer, Membrane.MP4.Muxer.ISOM)
-|> child(:sink, %Membrane.File.Sink{location: "output.mp4"})
-```
-
-**Code slides for this walkthrough: `code-slides/` in this directory (VS Code Dark+ colouring, one slide per step: full snippet, source, transcoder, muxer and sink). Rendered PNGs in `code-slides/export/`.**
 
 > Let's go through it top to bottom. First, we have to pull the audio stream into our pipeline.
 > In this case, we read it from a file. Next, the Transcoder, and the only thing you tell it is what
@@ -145,14 +121,12 @@ child(:source, %Membrane.File.Source{
 > You never see the raw step, and most of the time you don't need to. When you do, you split it
 > into two Transcoders and put your own element in between.
 
-**Code on screen, the same snippet with the Transcoder split in two and a custom element in between. Highlight the three middle lines.**
 
 **[4:30] Takeaway + next**
 
-> So, a codec is an encoder and a decoder, and the raw media in the middle is where you work.
-> In the next episode we'll look at what actually happens in those last two lines: how encoded
-> streams end up in a file together, so that a player knows where each frame starts and which
-> audio goes with it. That's what containers are for. See you there.
+> So, a codec is an encoder and a decoder, and the raw media in the middle is where you usually work.
+> In the next episode we'll look at containers: how encoded streams end up in a file together,
+> so that a player knows where each frame starts and which audio goes with it. See you there.
 
 **[4:50] End**
 

@@ -160,17 +160,10 @@ const HEXROWS = [
 ]
 // byte index -> field
 const FIELDS = [
-  { n: 'sig', c: '#87cce8', from: 0, to: 3, label: '<b>DKIF</b>, the IVF signature' },
-  { n: 'ver', c: '#e3e7f3', from: 4, to: 7, label: 'version 0, header length 32' },
-  { n: 'fourcc', c: '#ffe08a', from: 8, to: 11, label: '<b>VP80</b>, the codec' },
-  { n: 'w', c: '#c3f0c8', from: 12, to: 13, label: 'width <b>480</b>' },
-  { n: 'h', c: '#f9c6c6', from: 14, to: 15, label: 'height <b>270</b>' },
-  { n: 'rate', c: '#d9c8f5', from: 16, to: 23, label: '<b>25</b> frames per second' },
-  { n: 'cnt', c: '#ffd6a8', from: 24, to: 27, label: '<b>812</b> frames' },
-  { n: 'unused', c: '#e3e7f3', from: 28, to: 31, label: 'unused' },
-  { n: 'fsize', c: '#bfe3ff', from: 32, to: 35, label: 'first frame: <b>281</b> bytes' },
-  { n: 'fts', c: '#efe3c3', from: 36, to: 43, label: 'first frame: timestamp <b>0</b>' },
-  { n: 'data', c: '#ffffff', from: 44, to: 47, label: 'the VP8 frame itself' },
+  { n: 'fh', c: '#87cce8', from: 0, to: 31, label: 'the file header, 32 bytes' },
+  { n: 'size', c: '#ffd6a8', from: 32, to: 35, label: 'the frame header, 12 bytes: how big the frame is' },
+  { n: 'ts', c: '#ffe8c8', from: 36, to: 43, label: 'and when to show it' },
+  { n: 'data', c: '#ffffff', from: 44, to: 47, label: 'the frame itself begins' },
 ]
 const fieldOf = i => FIELDS.find(f => i >= f.from && i <= f.to)
 const hex = `<div class="hex">
@@ -180,7 +173,7 @@ const hex = `<div class="hex">
       const border = f && f.c === '#ffffff' ? 'box-shadow:inset 0 0 0 2px #cfd6e8;' : ''
       return `<span class="b" style="background:${f ? f.c : '#fff'};${border}">${b}</span>`
     }).join('')}</div>`).join('')}</div>
-  <div class="hexleg">${FIELDS.filter(f => f.n !== 'unused' && f.n !== 'ver').map(f =>
+  <div class="hexleg">${FIELDS.filter(f => true).map(f =>
     `<div class="${f.c === '#ffffff' ? 'plain' : ''}" style="--c:${f.c}">${f.label}</div>`).join('')}</div>
 </div>`
 
@@ -205,7 +198,7 @@ const interleaved = `<div>
 // ---------- 09 two shapes ----------
 const unit = (cls, t) => `<div class="u ${cls}">${t}</div>`
 const twoShapes = `<div>
-  <div class="shape"><div class="lbl">in the stream<small>parameter sets repeated before key frames</small></div>
+  <div class="shape"><div class="lbl">in the stream<small>parameter sets repeated in the stream</small></div>
     ${unit('ps', 'PS')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('ps', 'PS')}${unit('f', 'frame')}${unit('f', 'frame')}</div>
   <div class="shape"><div class="lbl">in the MP4 header<small>stored once, in a box called avc1</small></div>
     ${unit('hdr', 'avc1: PS')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('f', 'frame')}${unit('f', 'frame')}</div>

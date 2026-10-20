@@ -18,14 +18,14 @@ size, so cut from one to the next as the line is spoken and nothing jumps.
 | `02-bytes-1` … `02-bytes-4` | 0:40 | A strip of bytes: plain, then frame boundaries, then timestamps, then track colours |
 | `03-codec-vs-container` | 1:30 | Two cards: codec = how the media is compressed, container = how the streams are packaged |
 | `04-inside-the-file-1` … `04-inside-the-file-3` | 1:55 | Three files appear one by one: movie.mp4 (MP4 container with an H.264 and an AAC track), video.ivf (IVF container with one VP8 track), song.mp3 (bare MP3 stream, dashed "no container" frame) |
-| `05-ivf-header` | 1:55, IVF | The first 48 bytes of the IVF file, fields coloured and decoded (480×270, 25 fps, 812 frames, first frame 281 bytes) |
-| `06-mux`, `06-mux-vertical` | 3:20 | H.264 and AAC streams merging into an MP4 muxer, MP4 out; horizontal and vertical versions, pick one |
-| `07-interleaved` | 3:20 | The MP4 drawn as alternating video and audio chunks with second marks |
-| `08-demux`, `08-demux-vertical` | 3:55 | MP4 into an MP4 demuxer, H.264 and AAC out, each to a decoder; horizontal and vertical versions, pick one |
-| `09-two-shapes` | 4:20 | H.264 with parameter sets in the stream vs stored once in the MP4 header (avc1) |
-| `01-ffprobe-entries` | 4:55 | The same ffprobe snippet, "avc1" and "mp4a" highlighted |
+| `05-ivf-header` | 1:55, IVF | The first 48 bytes of the IVF file, coloured as three parts: the 32-byte file header, the 12-byte frame header (size, timestamp), the start of the first frame. Nothing is read aloud |
+| `06-mux`, `06-mux-vertical` | 3:10 | H.264 and AAC streams merging into an MP4 muxer, MP4 out; horizontal and vertical versions, pick one |
+| `07-interleaved` | 3:10 | The MP4 drawn as alternating video and audio chunks with second marks |
+| `08-demux`, `08-demux-vertical` | 3:50 | MP4 into an MP4 demuxer, H.264 and AAC out, each to a decoder; horizontal and vertical versions, pick one |
+| `09-two-shapes` | 4:15 | H.264 with parameter sets in the stream vs stored once in the MP4 header (avc1) |
+| `01-ffprobe-entries` | 4:50 | The same ffprobe snippet, "avc1" and "mp4a" highlighted |
 | `10-pipeline-1` … `10-pipeline-3` | 5:15, 5:45 | The pipeline diagram, data flowing top to bottom, video branch left and audio branch right; then the IVF deserializer and the MP4 muxer highlighted in turn (highlighted element filled navy, the rest dimmed) |
-| `11-takeaway` | 7:10 | The takeaway sentences |
+| `11-takeaway` | 7:05 | The takeaway sentences |
 
 `_preview/` holds alternative highlight styles for the pipeline (A: navy fill only, B: dim the rest only, C: both, the one in use); delete it once decided.
 

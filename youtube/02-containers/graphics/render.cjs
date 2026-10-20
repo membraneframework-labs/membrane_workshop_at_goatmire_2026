@@ -68,10 +68,37 @@ const css = `
 .hexleg div.plain::before { border:2px solid #cfd6e8; }
 .hexleg b { color:var(--navy); }
 
-/* pipeline rows */
-.prow { height:122px; display:flex; align-items:center; justify-content:flex-end; }
-.pcol { display:flex; flex-direction:column; gap:26px; }
+/* pipeline, vertical: data flows top to bottom, video branch left, audio right */
+.vcols { display:flex; gap:90px; align-items:flex-end; }
+.vcol { display:flex; flex-direction:column; align-items:center; }
+.vcol .box, .vcol .stream { width:360px; box-sizing:border-box; }
+.vcol .box { height:112px; display:flex; flex-direction:column; justify-content:center; padding:0 20px; }
+.vcol .stream { margin:0; }
+.varrow { width:16px; height:40px; flex:none; }
+.vmerge { flex:none; display:block; }
 .box small { display:block; font-size:21px; font-weight:400; opacity:.8; margin-top:2px; }
+/* highlight styles; the pipeline uses the one set in HL_STYLE below */
+.hlA .box.hl { background:var(--navy); color:#fff; box-shadow:none; }
+.hlA .box.hl small { opacity:.9; }
+.hlB .box.hl { box-shadow:none; border-width:4px; }
+.hlB .box:not(.hl), .hlB .stream, .hlB .varrow, .hlB .vmerge { opacity:.7; }
+.hlC .box.hl { background:var(--navy); color:#fff; box-shadow:none; }
+.hlC .box.hl small { opacity:.9; }
+.hlC .box:not(.hl), .hlC .stream, .hlC .varrow, .hlC .vmerge { opacity:.7; }
+
+/* what is inside the file */
+.files { display:flex; gap:44px; align-items:flex-start; }
+.file { display:flex; flex-direction:column; align-items:center; }
+.file.hidden { visibility:hidden; }
+.fname { font-size:26px; font-weight:700; color:var(--navy); background:var(--soft); border:2px solid var(--navy); border-bottom:none; border-radius:12px 12px 0 0; padding:8px 26px; }
+.page { width:340px; box-sizing:border-box; border:2px solid var(--navy); border-radius:0 12px 12px 12px; padding:22px; background:#fff; }
+.cont { position:relative; border:3px solid var(--navy); border-radius:10px; padding:48px 14px 14px; display:flex; flex-direction:column; gap:12px; min-height:206px; box-sizing:border-box; justify-content:center; }
+.cont::before { content:attr(data-label); position:absolute; top:12px; left:0; right:0; text-align:center; font-size:20px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--navy); }
+.cont.none { border:3px dashed #b8c0dc; }
+.cont.none::before { color:#8a93b8; }
+.track { height:56px; display:flex; align-items:center; justify-content:center; font-size:25px; font-weight:600; border-radius:8px; border:2px solid var(--navy); color:var(--navy); }
+.track.v { background:var(--blue); }
+.track.a { background:var(--navy); color:#fff; }
 `
 
 // ---------- small helpers ----------
@@ -87,11 +114,19 @@ const split = `<svg class="conn" width="90" height="180" viewBox="0 0 90 180">
   <path d="M0,90 C45,90 45,34 78,34" fill="none" stroke="${colors.navy}" stroke-width="2"/>
   <path d="M0,90 C45,90 45,146 78,146" fill="none" stroke="${colors.navy}" stroke-width="2"/>
   <polygon points="76,28 90,34 76,40" fill="${colors.navy}"/><polygon points="76,140 90,146 76,152" fill="${colors.navy}"/></svg>`
-// pipeline merge, taller (two .prow + gap)
-const pmerge = `<svg class="conn" width="90" height="270" viewBox="0 0 90 270">
-  <path d="M0,61 C45,61 45,135 78,135" fill="none" stroke="${colors.navy}" stroke-width="2"/>
-  <path d="M0,209 C45,209 45,135 78,135" fill="none" stroke="${colors.navy}" stroke-width="2"/>
-  <polygon points="76,129 90,135 76,141" fill="${colors.navy}"/></svg>`
+
+const varrow = `<svg class="varrow" viewBox="0 0 16 40"><line x1="8" y1="0" x2="8" y2="28" stroke="${colors.navy}" stroke-width="2"/><polygon points="2,26 8,40 14,26" fill="${colors.navy}"/></svg>`
+// two columns (centres 450 px apart) merging into one point below
+const vmerge = `<svg class="vmerge" width="450" height="80" viewBox="0 0 450 80">
+  <path d="M0,0 C0,45 225,30 225,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <path d="M450,0 C450,45 225,30 225,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <polygon points="219,66 225,80 231,66" fill="${colors.navy}"/></svg>`
+
+// one point above splitting into two columns (centres 450 px apart)
+const vsplit = `<svg class="vmerge" width="450" height="80" viewBox="0 0 450 80">
+  <path d="M225,0 C225,40 0,30 0,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <path d="M225,0 C225,40 450,30 450,66" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+  <polygon points="-6,66 0,80 6,66" fill="${colors.navy}"/><polygon points="444,66 450,80 456,66" fill="${colors.navy}"/></svg>`
 
 // ---------- 01 ffprobe ----------
 const ffprobe = which => {
@@ -117,13 +152,6 @@ const codecVsContainer = `<div class="pills">
   <div class="pill"><h3>Container</h3><div><b>how the streams are packaged</b></div><div>MP4 · MKV · WebM · IVF</div></div>
 </div>`
 
-// ---------- 04 three containers ----------
-const threeContainers = `<div class="pills">
-  <div class="pill"><h3>MP4</h3><div>many tracks</div><div>jump to any point</div><div>plays everywhere</div></div>
-  <div class="pill"><h3>IVF</h3><div>one video track</div><div>32-byte header</div><div>12 bytes per frame</div></div>
-  <div class="pill"><h3>MP3</h3><div>no container</div><div>every frame has</div><div>its own header</div></div>
-</div>`
-
 // ---------- 05 IVF header hex ----------
 const HEXROWS = [
   ['00000000', '44 4b 49 46 00 00 20 00 56 50 38 30 e0 01 0e 01'],
@@ -137,7 +165,7 @@ const FIELDS = [
   { n: 'fourcc', c: '#ffe08a', from: 8, to: 11, label: '<b>VP80</b>, the codec' },
   { n: 'w', c: '#c3f0c8', from: 12, to: 13, label: 'width <b>480</b>' },
   { n: 'h', c: '#f9c6c6', from: 14, to: 15, label: 'height <b>270</b>' },
-  { n: 'rate', c: '#d9c8f5', from: 16, to: 23, label: 'time base 1/<b>25</b> s' },
+  { n: 'rate', c: '#d9c8f5', from: 16, to: 23, label: '<b>25</b> frames per second' },
   { n: 'cnt', c: '#ffd6a8', from: 24, to: 27, label: '<b>812</b> frames' },
   { n: 'unused', c: '#e3e7f3', from: 28, to: 31, label: 'unused' },
   { n: 'fsize', c: '#bfe3ff', from: 32, to: 35, label: 'first frame: <b>281</b> bytes' },
@@ -161,6 +189,11 @@ const mux = row(`<div class="mcol left">${stream('H.264 stream')}${stream('AAC s
 const demux = row(stream('MP4'), arrow, box('MP4 demuxer'), split,
   `<div class="mcol right"><div>${stream('H.264 stream')}${arrow}${box('decoder', 'plain')}</div><div>${stream('AAC stream')}${arrow}${box('decoder', 'plain')}</div></div>`)
 
+// vertical variants of mux and demux, same convention as the pipeline
+const vchainOf = (...parts) => `<div class="vcol">${parts.join(varrow)}</div>`
+const muxVertical = `<div class="vcol"><div class="vcols">${vchainOf(stream('H.264 stream'))}${vchainOf(stream('AAC stream'))}</div>${vmerge}${vchainOf(box('MP4 muxer'), stream('MP4'))}</div>`
+const demuxVertical = `<div class="vcol">${vchainOf(stream('MP4'), box('MP4 demuxer'))}${vsplit}<div class="vcols">${vchainOf(stream('H.264 stream'), box('decoder', 'plain'))}${vchainOf(stream('AAC stream'), box('decoder', 'plain'))}</div></div>`
+
 // ---------- 07 interleaved ----------
 const interleaved = `<div>
   <div class="chunks">${[...Array(5)].map((_, i) =>
@@ -179,14 +212,24 @@ const twoShapes = `<div>
 </div>`
 
 // ---------- 10 pipeline ----------
-const pipeline = hl => {
-  const b = (t, key) => box(t, key === hl ? 'hl' : '')
-  const top = row(stream('bbb_vp8.ivf'), arrow, b('File.Source', 'ivfsrc'), arrow, b('IVF.Deserializer', 'ivf'), arrow,
-    b('Transcoder<small>VP8 → H.264</small>', 'vt'))
-  const bottom = row(stream('bbb.mp3'), arrow, b('File.Source<small>content format: MPEG audio</small>', 'mp3src'), arrow,
-    b('Transcoder<small>MP3 → AAC</small>', 'at'))
-  return row(`<div class="pcol"><div class="prow">${top}</div><div class="prow">${bottom}</div></div>`, pmerge,
-    b('MP4.Muxer.ISOM', 'mux'), arrow, b('File.Sink', 'sink'), arrow, stream('result.mp4'))
+const HL_STYLE = 'hlC'
+const pipeline = (hl, style = HL_STYLE) => {
+  // every tile has the same fixed height; the Transcoders carry a second line
+  const b = (t, key, sub) => box(t + (sub ? `<small>${sub}</small>` : ''), key === hl ? 'hl' : '')
+  const vchain = (...parts) => `<div class="vcol">${parts.join(varrow)}</div>`
+  const video = vchain(stream('bbb_vp8.ivf'), b('File.Source', 'ivfsrc'), b('IVF.Deserializer', 'ivf'), b('Transcoder', 'vt', 'VP8 → H.264'))
+  const audio = vchain(stream('bbb.mp3'), b('File.Source', 'mp3src'), b('Transcoder', 'at', 'MP3 → AAC'))
+  return `<div class="${style}"><div class="vcol"><div class="vcols">${video}${audio}</div>${vmerge}${vchain(b('MP4.Muxer.ISOM', 'mux'), b('File.Sink', 'sink'), stream('result.mp4'))}</div></div>`
+}
+
+// ---------- 04 what is inside the file (replaces the three cards) ----------
+const fileAnatomy = n => {
+  const file = (name, inner, i) => `<div class="file ${i < n ? '' : 'hidden'}"><div class="fname">${name}</div><div class="page">${inner}</div></div>`
+  return `<div class="files">
+    ${file('movie.mp4', `<div class="cont" data-label="MP4 container"><div class="track v">H.264 track</div><div class="track a">AAC track</div></div>`, 0)}
+    ${file('video.ivf', `<div class="cont" data-label="IVF container"><div class="track v">VP8 track</div></div>`, 1)}
+    ${file('song.mp3', `<div class="cont none" data-label="no container"><div class="track a">MP3 stream</div></div>`, 2)}
+  </div>`
 }
 
 // ---------- 11 takeaway ----------
@@ -198,14 +241,18 @@ const graphics = [
   ['01-ffprobe-entries', ffprobe('entries')],
   ['02-bytes-1', bytes(1)], ['02-bytes-2', bytes(2)], ['02-bytes-3', bytes(3)], ['02-bytes-4', bytes(4)],
   ['03-codec-vs-container', codecVsContainer],
-  ['04-three-containers', threeContainers],
+  ['04-inside-the-file-1', fileAnatomy(1)], ['04-inside-the-file-2', fileAnatomy(2)], ['04-inside-the-file-3', fileAnatomy(3)],
   ['05-ivf-header', hex],
-  ['06-mux', mux],
+  ['06-mux', mux], ['06-mux-vertical', muxVertical],
   ['07-interleaved', interleaved],
-  ['08-demux', demux],
+  ['08-demux', demux], ['08-demux-vertical', demuxVertical],
   ['09-two-shapes', twoShapes],
-  ['10-pipeline-1', pipeline(null)], ['10-pipeline-2', pipeline('ivf')], ['10-pipeline-3', pipeline('mux')], ['10-pipeline-4', pipeline('mp3src')],
+  ['10-pipeline-1', pipeline(null, '')], ['10-pipeline-2', pipeline('ivf')], ['10-pipeline-3', pipeline('mux')],
   ['11-takeaway', takeaway],
 ]
 
 render(graphics, OUT, null, css)
+if (process.argv.includes('--preview')) {
+  render([['hl-A-navy-fill', pipeline('ivf', 'hlA')], ['hl-B-dim-others', pipeline('ivf', 'hlB')], ['hl-C-navy-and-dim', pipeline('ivf', 'hlC')]],
+    path.join(OUT, '_preview'), null, css)
+}

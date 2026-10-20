@@ -1,4 +1,4 @@
-# 02 · MP4 is not a video format: containers, muxing and demuxing
+# 02 · MP4 is not a codec: containers, muxing and demuxing
 
 | | |
 |---|---|
@@ -7,7 +7,7 @@
 | SEO title | "MP4 vs H.264: what is a container? Muxing and demuxing explained (Multimedia 101 #2)" |
 | Keywords | mp4 vs h264, what is a container format, muxing, demuxing, mkv vs mp4, codec vs container, what is muxing |
 | Source | Ch. 1 slides "Containers", "Muxing and demuxing", the "Task 1" pipeline diagram and the elements table; DEEP_DIVE Ch. 1 "The process" and the Transcoder hints; the finished Ch. 1 pipeline; `notes/facts.md` for every verified detail |
-| On screen | Overlays from `images/` (see `images/README.md` for the file ↔ timestamp map): the two ffprobe stream lines (twice, with different highlights), a strip of bytes that gains boundaries, timestamps and tracks in three steps, the codec/container cards, the three containers, the IVF header decoded, the mux and demux diagrams, the two shapes of H.264, the pipeline diagram with its three container spots highlighted in three steps, the takeaway. Code comes from the Keynote presentation. |
+| On screen | Overlays from `images/` (see `images/README.md` for the file ↔ timestamp map): the two ffprobe stream lines (twice, with different highlights), a strip of bytes that gains boundaries, timestamps and tracks in three steps, the codec/container cards, three files drawn with what is inside them (built up in three steps), the IVF header decoded, the mux and demux diagrams, the two shapes of H.264, the pipeline diagram with its two container elements highlighted in turn, the takeaway. Code comes from the Keynote presentation. |
 
 ## Facts that must land (drafting checklist, delete before recording if you like)
 
@@ -24,20 +24,19 @@
 
 **[0:00] Cold open. On camera. Overlay `01-ffprobe.png`: the two stream lines of an MP4 file as ffprobe prints them, "h264" and "aac" highlighted.**
 
-> This is an MP4 file, and this is what a tool called ffprobe says about it. Stream zero is video,
-> encoded with H.264. Stream one is audio, encoded with AAC. There is no "MP4 compression" anywhere
-> in here. So if MP4 doesn't compress anything, what does it actually do? That's what this episode
-> is about.
+> Here is what a tool called ffprobe says about an MP4 file. Stream zero is video, encoded with
+> H.264. Stream one is audio, encoded with AAC. There is no "MP4 compression" anywhere in here. So
+> if MP4 doesn't compress anything, what does it actually do? That's what this episode is about.
 
 **[0:20] Bumper**
 
 **[0:25] On camera**
 
-> In this video I'll explain what a multimedia container is, why MP4 is not a codec, and what 
-> muxing and demuxing mean. At the end I'll show you how it looks in Membrane, an open-source multimedia
-> framework for Elixir.
+> In this video I'll explain what a multimedia container is, why MP4 is not a codec, and what muxing
+> and demuxing mean. At the end I'll show you how all of this looks in Membrane, an open-source
+> multimedia framework for Elixir.
 
-**[0:40] Overlay `02-bytes-1.png`: a long strip of identical bytes with no marks. Then `02-bytes-2.png`, `-3.png`, `-4.png` as the frame boundaries, the timestamps and the track colours appear, one per sentence.**
+**[0:40] Overlay `02-bytes-1.png`: a long strip of identical bytes with no marks. The questions in the first paragraph play over it. Then `02-bytes-2.png`, `-3.png`, `-4.png` as the frame boundaries, the timestamps and the track colours appear, one per clause of "where each frame starts, what its timestamp is, and which track it belongs to" in the second paragraph.**
 
 > Let's start with what comes out of an encoder, the program that compresses video or audio. It
 > gives you a stream of bytes, and if I just hand you that stream, you'll run into a few problems.
@@ -53,41 +52,42 @@
 > So these are two separate questions. The codec is how the media is compressed. The container is
 > how the streams are packaged. You can have H.264 in MP4, H.264 in MKV, VP8 in WebM, any
 > combination the container allows. And when somebody asks you to "convert this to MP4", it's worth
-> asking which part they mean: repackaging is quick, re-encoding is a different job.
+> asking which part they mean: repackaging is quick, re-encoding is not.
 
-**[1:55] Overlay `04-three-containers.png`: three cards, MP4, IVF, MP3. For the IVF card, switch to `05-ivf-header.png`: the first 48 bytes of an IVF file, with the signature, codec, width, height, frame rate, frame count and the first frame header coloured and labelled.**
+**[1:55] Overlays `04-inside-the-file-1.png`, `-2.png`, `-3.png`: three files appear one by one as you reach them. movie.mp4 is drawn as an MP4 container holding an H.264 track and an AAC track; video.ivf as an IVF container holding one VP8 track; song.mp3 as a bare MP3 stream with a dashed "no container" frame around it. While on IVF, switch to `05-ivf-header.png` (the first 48 bytes of an IVF file, with the signature, codec, width, height, frame rate, frame count and the first frame header coloured and labelled), then back to `04-inside-the-file-3.png` as the MP3 sentence starts.**
 
 > Let's look at three examples. MP4 is the container you meet everywhere. It can hold many tracks,
 > you can jump to any point in the file, and almost every device can play it. It's an ISO standard,
 > which is why you'll see "ISOM" in library names.
 
-> IVF is on the opposite end. It holds a single video stream, VP8, VP9 or AV1. The file starts with
-> a 32-byte header, and then every frame gets 12 bytes in front of it: the size of the frame and a
-> timestamp. Here are the first bytes of such a file: the signature and the codec name, then the
-> picture size, 480 by 270, the frame rate, 25 frames per second, the number of frames, 812, and
-> then the header of the first frame, which is 281 bytes long. The whole container adds less than
-> one percent to the file.
+> IVF is the opposite: it's about as simple as a container gets. It holds a single video stream,
+> VP8, VP9 or AV1. The file starts with a 32-byte header, and then every frame gets 12 bytes in
+> front of it: the size of the frame and a timestamp. Here are the first bytes of such a file. First
+> the signature and the codec name, then the picture size, 480 by 270, and 25 frames per second.
+> Then the number of frames, 812. And then the 12-byte header of the first frame, which says that
+> frame is 281 bytes long. The whole container adds less than one percent to the file.
 
 > And MP3 doesn't need a container at all. Every MP3 frame starts with its own small header that
-> says what kind of frame it is, and from that you know how long it is, so the encoded stream can go
-> straight into a file. That's why ".mp3" is the name of both the codec and the file.
+> says what kind of frame it is, and from that you know how long it is. So the encoded stream can go
+> straight into a file. That's why MP3 is the name of both the codec and the file format.
 
-**[3:15] Overlay `06-mux.png`: H.264 and AAC streams going into an "MP4 muxer" box, MP4 coming out. Then `07-interleaved.png`: the output drawn as alternating chunks, video, audio, video, audio.**
+**[3:20] Overlay `06-mux.png` (or `06-mux-vertical.png`, same content, if it should match the vertical pipeline later): H.264 and AAC streams going into an "MP4 muxer" box, MP4 coming out. Then `07-interleaved.png`: the output drawn as alternating chunks, video, audio, video, audio.**
 
 > Putting streams into a container is called muxing. The muxer takes the H.264 stream and the AAC
-> stream and interleaves them: a chunk of video, the matching chunk of audio, the next chunk of
-> video, and so on. Each piece gets its timestamp, so a player can read the file from the beginning
-> and keep both in sync. The muxer doesn't compress anything: in the MP4 file from the start, the
-> container is about half a percent of the size, the rest is the encoded media, untouched.
+> stream and interleaves them, so you get a chunk of video, then the matching chunk of audio, then
+> the next chunk of video, and so on. Each piece gets its timestamp, so a player can read the file
+> from the beginning and keep both in sync. The muxer doesn't compress anything. In the MP4 file
+> from the beginning, the container is about half a percent of the size. The rest is the encoded
+> media itself.
 
-**[3:50] Overlay `08-demux.png`: MP4 going into an "MP4 demuxer" box, H.264 and AAC coming out, each arrow ending at a small decoder box.**
+**[3:55] Overlay `08-demux.png` (or `08-demux-vertical.png`): MP4 going into an "MP4 demuxer" box, H.264 and AAC coming out, each arrow ending at a small decoder box.**
 
-> Demuxing is the reverse, and it's the first thing every media player does. It opens the file,
-> reads the table that says where every frame is, splits the file back into the separate streams,
-> and hands each one to its decoder. After the demuxer you still have H.264 and AAC, not pictures
-> and sound.
+> Demuxing is the reverse, and it's the first thing a media player does with a file like this. It
+> reads the part of the file that says where every frame is, splits the file back into the separate
+> streams, and hands each one to its decoder. After the demuxer you still have H.264 and AAC, not
+> pictures and sound.
 
-**[4:10] Overlay `09-two-shapes.png`: the same H.264 drawn twice, once with the parameter sets repeated in front of the frames, once with them stored once in the MP4 header, labelled "avc1".**
+**[4:20] Overlay `09-two-shapes.png`: the same H.264 drawn twice, once with the parameter sets repeated in front of the frames, once with them stored once in the MP4 header, labelled "avc1".**
 
 > There's one more thing containers do, and you'll run into it the first time you try to put H.264
 > into an MP4 yourself. Some codecs need a few settings before the decoder can start. For H.264
@@ -96,26 +96,26 @@
 > what MP4 normally does. So the same H.264 comes in two shapes, and a muxer insists on the shape it
 > was designed for.
 
-**[4:50] Overlay `01-ffprobe-entries.png`: the ffprobe lines again, this time with "avc1" and "mp4a" highlighted.**
+**[4:55] Overlay `01-ffprobe-entries.png`: the ffprobe lines again, this time with "avc1" and "mp4a" highlighted.**
 
-> Remember the ffprobe output from the beginning? Next to "h264" it said "avc1". That's the name of
-> the entry in the MP4 header where this configuration lives. The audio line has "mp4a" in the same
-> spot, and inside that entry the AAC configuration sits in a box called "esds".
+> Here is the ffprobe output from the beginning again. Next to "h264" it says "avc1". That's the
+> name of the box in the MP4 header where this configuration lives. The audio line has "mp4a" in the
+> same spot, and inside that box the AAC configuration sits in another one called "esds".
 
-**[5:05] Overlay `10-pipeline-1.png`: the pipeline diagram, two files in, one MP4 out, every element a box.**
+**[5:15] Overlay `10-pipeline-1.png`: the pipeline diagram, data flowing top to bottom, video branch on the left, audio branch on the right, both merging into the muxer; every element a box.**
 
 > So how does this look in Membrane? In Membrane, you build a media application as a pipeline: a
 > chain of elements, where each element does one thing with the stream and passes it on. Here is a
-> pipeline that takes an MP3 file and a VP8 video in an IVF file, and produces one MP4 with AAC and
-> H.264 inside. Every box is one element, and three of these elements deal with containers.
+> pipeline that takes a VP8 video in an IVF file and an MP3 file, and produces one MP4 with H.264
+> and AAC inside. Every box does one job, and two of them are about containers: the IVF deserializer
+> and the MP4 muxer.
 
-**[5:35] Overlays `10-pipeline-2.png`, `-3.png`, `-4.png`: the IVF deserializer, then the MP4 muxer, then the MP3 source highlighted, one per sentence.**
+**[5:45] Overlays `10-pipeline-2.png` and `-3.png`: the IVF deserializer, then the MP4 muxer highlighted, one per sentence.**
 
 > The IVF deserializer unpacks the VP8 stream from the IVF file, so it's a demuxer for a one-track
-> container. The MP4 muxer puts the AAC and the H.264 together into one MP4. And the MP3 file source
-> is the no-container case.
+> container. The MP4 muxer puts the AAC and the H.264 together into one MP4.
 
-**[5:55] Keynote presentation: the code. Walk through it top to bottom.**
+**[6:00] Keynote presentation: the spec, built up line by line as you speak. The first two sentences are spoken over the empty slide; from the third sentence on, each sentence corresponds to the lines that appear at that moment, and the full spec is visible only at the end.**
 
 ```elixir
 spec = [
@@ -144,12 +144,13 @@ spec = [
 ]
 ```
 
-> Here's the same pipeline as code, top to bottom. Every box from the diagram is one element here,
-> and some of them carry options. The first element reads the IVF file. The second one, the IVF
-> deserializer, takes the container apart and gives us the plain VP8 stream. Then a Transcoder turns
-> VP8 into H.264, and notice the option: stream structure avc1. That's the shape the MP4 muxer
-> wants, with the parameter sets kept aside for the header. Then comes the MP4 muxer, that's the
-> ISOM from earlier, and a file sink that writes the result to disk.
+> Now let's look at how this pipeline is written. Don't worry about the syntax itself, that's a
+> topic for another episode. The first element reads the IVF file. The second one, the IVF
+> deserializer, takes the container apart and gives us the plain VP8 stream. Then a Transcoder, a
+> component that re-encodes the stream, turns VP8 into H.264. Notice the option: stream structure
+> avc1. That's the shape the MP4 muxer wants, with the parameter sets kept aside for the header.
+> Then comes the MP4 muxer, with that ISOM in its name, and a file sink that writes the result to
+> disk.
 
 > The second branch starts with the MP3 file, and this is the no-container case in practice. There's
 > no container header to announce the format, and the file source doesn't look inside the bytes, so
@@ -157,18 +158,14 @@ spec = [
 > config esds, again the shape the muxer wants. And the last line plugs this branch into the same
 > muxer as the video.
 
-> Three options in this code are there only because of containers: the content format on the MP3
-> source, avc1 on the video, and esds on the audio. The syntax itself is a topic for another
-> episode.
-
-**[7:15] Overlay `11-takeaway.png`.**
+**[7:10] Overlay `11-takeaway.png`.**
 
 > So, the codec is how the media is compressed, and the container is how the streams are packaged. A
 > muxer puts streams into a container, a demuxer takes them out, and neither of them touches the
 > compression. In the next episode we'll look at what a Membrane pipeline is actually made of:
 > elements, pads, and how they connect. See you there.
 
-**[7:40] End**
+**[7:35] End**
 
 ---
 
@@ -189,7 +186,7 @@ spec = [
 5. Muxing: interleave with timestamps so a player keeps the streams in sync. The muxer doesn't compress; the container is about half a percent of this file.
 6. Demuxing: the reverse, the first thing a player does. After it you still have encoded streams.
 7. Codec configuration inside the container: parameter sets in the stream or once in the header. Two shapes of H.264, the muxer insists on one. Callback to "avc1" in the ffprobe output; "esds" for AAC.
-8. In Membrane: two-sentence intro of Membrane, the pipeline diagram, the three container elements (the IVF deserializer, which is a demuxer; the MP4 muxer; the MP3 source as the no-container case), optionally one sentence that an MP4 demuxer exists. Then the code from Keynote, top to bottom, ending on the three container options: `content_format`, `:avc1`, `:esds`.
+8. In Membrane: two-sentence intro of Membrane, the pipeline diagram, the two container elements (the IVF deserializer, which is a demuxer, and the MP4 muxer), optionally one sentence that an MP4 demuxer exists. Then the code from Keynote, built line by line, with the MP3 source as the no-container case in practice and the three container options pointed out as they appear: `content_format`, `:avc1`, `:esds`.
 9. Takeaway, then next: what a pipeline is made of.
 
 **What not to do:** don't describe the MP4 box tree (moov, mdat, ftyp) beyond "the header holds the

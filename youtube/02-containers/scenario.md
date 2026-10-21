@@ -96,7 +96,7 @@
 > what MP4 normally does. So the same H.264 comes in two shapes, and a muxer insists on the shape it
 > was designed for.
 
-**[4:50] Overlay `01-ffprobe-entries.png`: the ffprobe lines again, this time with "avc1" and "mp4a" highlighted.**
+**[4:55] Overlay `01-ffprobe-entries.png`: the ffprobe lines again, this time with "avc1" and "mp4a" highlighted.**
 
 > Here is the ffprobe output from the beginning again. Next to "h264" it says "avc1". That's the
 > name of the box in the MP4 header where this configuration lives. The audio line has "mp4a" in the
@@ -162,8 +162,8 @@ spec = [
 
 > So, the codec is how the media is compressed, and the container is how the streams are packaged. A
 > muxer puts streams into a container, a demuxer takes them out, and neither of them touches the
-> compression. In the next episode we'll look at what a Membrane pipeline is actually made of:
-> elements, pads, and how they connect. See you there.
+> compression. That's all you need to know about containers to read a pipeline like the one we just
+> saw. See you in the next episode.
 
 **[7:30] End**
 
@@ -187,7 +187,7 @@ spec = [
 6. Demuxing: the reverse, the first thing a player does. After it you still have encoded streams.
 7. Codec configuration inside the container: parameter sets in the stream or once in the header. Two shapes of H.264, the muxer insists on one. Callback to "avc1" in the ffprobe output; "esds" for AAC.
 8. In Membrane: two-sentence intro of Membrane, the pipeline diagram, the two container elements (the IVF deserializer, which is a demuxer, and the MP4 muxer), optionally one sentence that an MP4 demuxer exists. Then the code from Keynote, built line by line, with the MP3 source as the no-container case in practice and the three container options pointed out as they appear: `content_format`, `:avc1`, `:esds`.
-9. Takeaway, then next: what a pipeline is made of.
+9. Takeaway, then a plain goodbye. No promise about the next topic.
 
 **What not to do:** don't describe the MP4 box tree (moov, mdat, ftyp) beyond "the header holds the
 configuration, in a place called avc1". No fast start, no fragmented MP4, no CMAF or HLS. One clause,

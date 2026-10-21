@@ -41,7 +41,7 @@
 > Let's start with what comes out of an encoder, the program that compresses video or audio. It
 > gives you a stream of bytes, and if I just hand you that stream, you'll run into a few problems.
 > Where does one frame end and the next one begin? When should each frame be shown? And if I also
-> give you the audio, how do you know which bit of audio goes with which frame?
+> give you the audio, how do you know which bit of audio goes with which video frame?
 
 > A container answers those questions. It wraps the encoded streams with the information a reader
 > needs: where each frame starts, what its timestamp is, and which track it belongs to. Tracks are

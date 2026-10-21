@@ -17,7 +17,7 @@
 
 > Let's do some quick math. A full HD frame is nineteen-twenty by ten-eighty pixels, so about
 > two million pixels. Each pixel needs three bytes, for red, green and blue. That's about six
-> megabytes for a single frame. At thirty frames a second, you're at ond hundred eighty-seven
+> megabytes for a single frame. At thirty frames a second, you're at one hundred eighty-seven
 > megabytes every second.
 
 > A two-hour movie would be one point three terabytes. You can't store that, let alone stream it.

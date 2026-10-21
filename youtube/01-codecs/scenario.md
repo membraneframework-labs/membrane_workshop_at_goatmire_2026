@@ -35,7 +35,7 @@
 
 > A codec is really two programs. One is the encoder: you give it raw video, it compresses it.
 > The other is the decoder: you give it the compressed stream, it gives you back frames you can
-> show, or audio you can play.
+> show.
 
 **[1:00] Numbers on screen: 187 MB/s → ~0.5 MB/s**
 
@@ -62,7 +62,7 @@
 
 **[2:00] Names. The codec table from the slide.**
 
-> Let's go through a few names you'll run into. For video there's H.264. It's by far the most
+> Let's go through a few codecs names you'll run into. For video there's H.264. It's by far the most
 > widely supported video format out there, almost every device you own can decode it. Then there's VP8,
 > which is open and royalty-free, and that's what you'll meet in WebRTC, so in Google Meet or Teams calls.
 > There are newer ones too, like H.265, VP9 or AV1. They compress better and are heavier on CPU or GPU,
@@ -74,7 +74,7 @@
 
 > One thing to keep in mind: a coding format is not a file format. H.264 describes a stream of
 > bytes, and how that stream ends up in a file is a separate question. We will cover this topic in
-> the next episode. MP3 is a bit special here, because you can just put it in the file, with to extra
+> the next episode. MP3 is a bit special here, because you can just put it in the file, with no extra
 > container needed.
 
 **[2:45] Transcoding. Both diagrams from the slide: "VP8 stream → VP8 decoder → raw video frames → H.264 encoder → H.264 stream", and below it "MP3 stream → MP3 decoder → raw audio samples → AAC encoder → AAC stream". The decoder, raw media and encoder are grouped in a box labelled "transcoding".**

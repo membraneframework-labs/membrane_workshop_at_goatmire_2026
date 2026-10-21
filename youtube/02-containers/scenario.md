@@ -162,8 +162,8 @@ spec = [
 
 > So, the codec is how the media is compressed, and the container is how the streams are packaged. A
 > muxer puts streams into a container, a demuxer takes them out, and neither of them touches the
-> compression. That's all you need to know about containers to read a pipeline like the one we just
-> saw. See you in the next episode.
+> compression. That's the core of what containers do, and it's enough to read a pipeline like the
+> one we just saw. Thanks for watching, and see you in the next episode.
 
 **[7:30] End**
 

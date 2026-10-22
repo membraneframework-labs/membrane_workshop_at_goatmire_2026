@@ -13,8 +13,11 @@ next to the author's head. The scripts live in `youtube/NN-slug/scenario.md`.
 Everything in this file was learned the hard way on episode 01. Follow it closely. Where the
 author's past decisions are quoted, they are decisions, not suggestions.
 
-**The reference episode is `youtube/01-codecs/`.** Read `scenario.md`, `images/README.md` and
-`graphics/render.cjs` there before writing anything. That episode is approved. Match it.
+**The reference episodes are `youtube/01-codecs/` and `youtube/02-containers/`.** Both are approved.
+Read their `scenario.md`, `images/README.md` and `graphics/render.cjs` before writing anything, and
+`youtube/02-containers/notes/facts.md` to see what a fact sheet looks like. Episode 02 is the newer
+of the two and shows the current graphics conventions (vertical pipelines, dimmed highlights, the
+file-anatomy build-up); where the two differ, follow 02.
 
 ---
 
@@ -33,6 +36,13 @@ author's past decisions are quoted, they are decisions, not suggestions.
   never depends on another. "Last episode we…" is banned. A one-clause teaser of a later topic
   ("that's a story for another episode") is fine. Naming the next episode's topic at the very end
   is fine ("In the next episode we'll look at containers").
+- **The intro's promise binds every episode:** "every video starts with the concept itself, the part
+  that holds no matter what language or tool you use, then how it looks in Membrane". So a MEMBRANE
+  episode opens with its tool-independent idea (a pipeline is a dataflow graph, as in GStreamer or
+  FFmpeg filter graphs; backpressure is a general problem) before any Membrane vocabulary.
+- **Detail budget.** A fact earns a sentence only if it carries the episode's point or is used again
+  later. The author on reading an IVF header field by field: *"we do not reuse this knowledge
+  anywhere"*. Show structure, don't recite numbers. When in doubt, cut the number and keep the shape.
 - **Audience:** developers with **no multimedia background**. Some Elixir helps, but the viewer
   may never have heard of Membrane, H.264 or a container. Never write "you've probably seen…" or
   "as you know…". Introduce Membrane in one or two sentences the first time it is named in each
@@ -84,7 +94,21 @@ related points with "so", "and", "which", "because" instead of chopping them int
   lossless → "most codecs"), "none of these are files" (MP3 is both), "play it" as something you do
   *between* decoder and encoder.
 - Mixed register inside one explanation: don't say "coder-decoder" and then switch to "encoder".
-  Pick the term the rest of the episode uses and introduce it once.
+  Pick the term the rest of the episode uses and introduce it once. Same for "entry" vs "box":
+  one word per thing, in the script and on the graphics.
+- Category errors, in text and in graphics alike: MP3 is a codec, not a container; the Transcoder is
+  a component, not an element; a file is not a stream. The author catches these every time
+  ("MP3 AFAIK is not a container, it is a codec"). Never put different categories in one row of
+  cards.
+- Meta-closings after a code walkthrough ("Three options in this code are there only because of
+  containers: …", "and now you know why each of them is there"). The author: *"it does not sound
+  good"*. End the walkthrough on the last line of code and go to the takeaway.
+- Words that are ambiguous when heard: "how long the frame is" (bytes or seconds?), "from the
+  beginning" (of the file or of the episode?), "let's build" (the series builds nothing). Say
+  "how big", "the file we started with", "let's look at how it's written".
+- Introduce every term the first time it appears in **this** episode, even if episode 01 had it:
+  encoder, decoder, Transcoder, element. Five words are enough ("a Transcoder, a component that
+  re-encodes the stream").
 
 **Preferred shapes:**
 
@@ -160,10 +184,16 @@ Notes on the structure:
   keep it in the draft you hand over; the author will delete it if they don't want it. Mark it
   clearly so a reviewer can check the spoken text against it.
 - **Timestamps** in stage directions are estimates. Recompute them when text changes (~150 wpm).
-- **Code:** the author shows code from a Keynote presentation, not from your graphics. Still put
-  every snippet in the scenario as a fenced `elixir` block under its stage direction, because the
-  author copies it into Keynote from there, and the reviewer needs it to check the walkthrough.
-  The author may trim the blocks later; that is their call.
+- **Code:** the author shows code from a Keynote presentation, not from your graphics, and builds
+  the spec **line by line as they speak**. Still put every snippet in the scenario as a fenced
+  `elixir` block under its stage direction, because the author copies it into Keynote from there,
+  and the reviewer needs it to check the walkthrough. Write the walkthrough so each sentence maps to
+  the lines appearing at that moment, top to bottom, and say in the stage direction which opening
+  sentences are spoken over the empty slide. The author may trim the blocks later; that is their call.
+- **Stage directions are the editor's instructions.** Name the overlay file for every visual, say
+  which spoken clause each build-up step follows, and when you cut away to a second graphic (a hex
+  dump during a card build-up), say when to cut back. If two orientations of a graphic exist, say
+  which one.
 - The spoken text is **100% English**. No Polish anywhere in the file, not even in notes.
 - Version A is recorded 1:1 or nearly so. Version B is the fallback for off-the-cuff recording.
   Version B must agree with Version A on facts and order.
@@ -183,21 +213,55 @@ would not run is a bug in the script.
    the episode doesn't explain it. One sentence can defer the explanation to another episode.
 2. **Prefer the workshop's real code** from the checkpoint branches, simplified only by renaming
    or dropping unrelated parts. Never invent an element or option you haven't seen in `deps/`.
-3. **Verify every identifier against source.** For each module, option and default in a snippet:
+3. **Run the example.** `mix run` a script with the spec (the project compiles; `_build/` is
+   gitignored) and `ffprobe` the output. On episode 02 this is how we learned the Transcoder's
+   MP3 → AAC path produces mono, so the script could not call the result "stereo". A fact sheet
+   that says "runs, terminates :normal, output probes as …" is worth more than any reading of the
+   source.
+4. **Verify every identifier against source.** For each module, option and default in a snippet:
    - `grep -rn "defmodule Membrane.X" deps/` to prove the module exists in the pinned versions.
    - open the file and check the option name, its type and default (`defstruct`, `def_options`).
    - for the Transcoder, `deps/membrane_transcoder_plugin/lib/transcoder/output_format.ex` and
      `audio.ex`/`video.ex` tell you what it accepts and what it builds inside.
    Record what you verified and where in the hand-over message. "I believe" is not verification.
-4. **Verify numbers.** Arithmetic in the script must be recomputed. Asset facts come from
+5. **Verify numbers.** Arithmetic in the script must be recomputed. Asset facts come from
    `ffprobe assets/<file>` (the Big Buck Bunny clip is 480×270, 25 fps, 32-33 s; the MP4 asset is
    H.264 Constrained Baseline in `avc1` plus stereo AAC-LC). Do not say a clip is "ten minutes".
-5. **Don't show things the author considers bad practice**, even if they work: e.g. writing a raw
+6. **Don't show things the author considers bad practice**, even if they work: e.g. writing a raw
    H.264 stream into a `.h264` file as the "result" of a pipeline. The author replaced that with
    MP3 → AAC in MP4. When in doubt, mux into a container.
-6. **Name things at the level the viewer can hold.** `Membrane.Transcoder` is technically a Bin;
+7. **Name things at the level the viewer can hold.** `Membrane.Transcoder` is technically a Bin;
    the workshop calls it an element, the author calls it "a Membrane component". Use "component"
    for it and "element" for real elements. Don't introduce the word "Bin" before episode 12.
+
+**The `example/` directory: a runnable demo of the slide code.** Every episode whose Membrane
+part shows a pipeline gets `youtube/NN-slug/example/` with:
+
+- one script, named after what it does, no suffix (`mp3_to_mp4.exs`, `ivf_mp3_to_mp4.exs`),
+  runnable with plain `elixir <script>` from inside that directory, outside the Mix project;
+- the input fixtures next to it, under the file names the slide code uses (`input.mp3`,
+  `bbb_vp8.ivf`, `bbb.mp3`), copied from `assets/`;
+- a `.gitignore` listing the output file the script writes.
+
+The script is, top to bottom: `Mix.install` with the same three-component version requirements as
+the root `mix.exs` (loose `~> 0.36` would drift to a breaking 0.x release; the Transcoder brings the
+codec plugins transitively, file/ivf plugins must be listed); `Logger.configure(level: :error)` so
+the terminal stays empty on camera (`:warning` shows one benign FDK encoder line, no configure at
+all shows a thousand debug lines); a pipeline **module** (`use Membrane.Pipeline`, never
+`RCPipeline`) whose `handle_init` returns the spec **byte for byte as on the slide**, including the
+slide's line layout and child names, with straight quotes even if Keynote shows curly ones; two
+`handle_element_end_of_stream` clauses, the sink's returning `terminate: :normal`, a catch-all
+returning `{[], state}`; then `Membrane.Pipeline.start_link(Module)`, `Process.monitor` on the
+pipeline pid and a `receive` for `:DOWN`. Nothing else: no comments, no options, no state beyond
+`%{}`. See `youtube/01-codecs/example/mp3_to_mp4.exs` for the shape.
+
+Before handing over: run each script from its directory, check exit 0 and an empty terminal, run
+`ffprobe -hide_banner` on the output and confirm the streams the episode promises, then delete the
+output. Tell the author to run each script once on the recording machine beforehand, because the
+first `Mix.install` compiles native libraries for minutes; after that a run takes under a second.
+Known quirk: the Transcoder's MP3 → AAC path produces mono from a stereo MP3 and there is no slide
+level option to change it, so ffprobe will show "mono" on camera; the script must not pretend
+otherwise.
 
 **Facts already verified for this project** (reuse, don't re-derive):
 
@@ -263,6 +327,18 @@ replacement. No summaries, no praise.
 **Finisher (you, the main agent):** read the final script once more end to end, in one sitting,
 as a viewer. Then produce the graphics (§6), the images README, and the hand-over message (§8).
 
+**Expect several rounds.** Episode 02 took four review rounds: one on the first draft, then one
+after each batch of the author's comments. Every round found real seams, always at the edges of
+the latest edits (a stage direction that no longer matched a graphic, a sentence referring to a
+line that had been deleted, a graphic rendered in a state nobody intended). So: after **any** batch
+of piecemeal edits, text or graphics, run a fresh reviewer over the whole Version A plus the PNGs
+before handing over. The author asks for this explicitly ("ensure the quality is good once again,
+with the workflow"); do it without being asked.
+
+**Give the reviewer the pictures.** The reviewer must open the overlays named in the stage
+directions (the `Read` tool renders PNGs) and check that words and pictures agree: same terms,
+same order, same number of build-up steps, nothing highlighted that the text doesn't mention.
+
 If any role is unsure about a fact, the answer is to open the source, not to soften the sentence.
 
 ---
@@ -286,6 +362,33 @@ The editor pastes graphics **next to the author's head**, so they are overlays, 
   on a canvas). If something cannot be generated, say so and leave it to the author.
 - **Full-frame images** (a generated background, a terminal screenshot you made) live at the top
   level of `images/`, 1920×1080, and are listed in the README with their size.
+
+**Conventions settled on episode 02 (follow them):**
+
+- **Pipelines are vertical.** Data flows top to bottom, the video branch on the left, the audio
+  branch on the right, both merging into the muxer (`vchain`, `vmerge`, `vsplit` in the shared
+  library). Horizontal pipelines were "too wide compared to the size of the letters". Tiles have a
+  fixed height with the text vertically centred; every tile the same height; a second line
+  (`Transcoder` / `VP8 → H.264`) only where it informs.
+- **Highlighting a step:** the current element is filled navy with white text, everything else at
+  70 % opacity (`.hlC`). No rings, no outlines; the author found both "not catchy enough" and then
+  "even worse". The un-highlighted first step must **not** carry the dim style.
+- **Show category differences.** A "what's inside the file" graphic (container frame holding track
+  bars; a dashed "no container" frame for MP3) replaced three equal cards because the cards made MP3
+  look like a peer of MP4 and IVF.
+- **Hex dumps:** colour the structure (file header / frame header / data), three or four labels,
+  no decoded numbers in the legend unless the script reads them out.
+- **Terminal output** (ffprobe) is a dark rounded panel in JetBrains Mono, ligatures off, with the
+  words the script points at highlighted in blue; condensed to the lines that matter, never
+  invented.
+- **Decisions the author will want to see, not read:** orientation, highlight style, how a concept
+  graphic is composed. Render two or three variants into `images/_preview/` and let them choose.
+  The author: *"I need to see it with my own eyes, instead of reading a description."* Never ask
+  them to imagine a graphic.
+- **Verify renders at the pixel level.** Look at every PNG you produced. Check that all steps of a
+  build-up have the same width and height (read the PNG header). After changing an opacity or a
+  colour, confirm it landed (a sed that didn't match leaves the old PNG in place, which happened
+  once). Card shadows and highlight rings need the padded wrapper the library provides.
 
 **How:** every episode has `graphics/render.cjs`, a list of `[name, html]` pairs built with the
 helpers in `youtube/tools/overlays.cjs` (`chain`, `box`, `stream`, `group`, `stack`, `buildup`,
@@ -335,6 +438,14 @@ rewrite. They may also delete sentences or rewrite lines directly without a comm
   and `git diff` to see what is really there. If your changes were lost, re-apply them from the
   current file; don't assume the file is as you left it.
 - Comments can arrive mid-turn. Address them in the same turn.
+- **"Tell me before you make changes" / "wdyt" means propose, don't implement.** Answer with the
+  options and a recommendation; for anything visual, render previews. Then wait.
+- **The author edits the same file while you work.** Before every edit, normalise the blockquote
+  wrapping and match on the joined text, not on line breaks; re-read the lines around your target
+  if an exact match fails. Several edits were lost to this before the fix.
+- **Re-time after every text change.** Recompute the `[m:ss]` marks from the cumulative word count
+  (150 wpm, 5 s bumper, rounded to 5 s) and sync the times in `images/README.md`; the lint checks
+  they agree.
 - The author appreciates one-line corrections of their English in replies (they asked for it).
   Keep it to clear slips, one line, at the end, never preachy.
 
@@ -351,7 +462,14 @@ The author reads only the final message. It must stand on its own.
    sentence, an example choice), each in one line with the alternative.
 4. Anything you could not verify, with what you would need.
 5. Do not commit unless asked. The author's shorthand "c p" means commit and push. Commits end
-   with the `Co-Authored-By` trailer from the session's instructions.
+   with the `Co-Authored-By` trailer from the session's instructions. Write commit messages to a
+   temp file and use `git commit -F` (heredocs with apostrophes break in this shell).
+6. **Branches** (as of 2026-10-20): `main` holds the workshop only, no series material.
+   `youtube-main` holds the intro, the skill and the tools. `youtube-01-and-02` holds the approved
+   episodes 01 and 02 on top of `youtube-main`; PRs of finished episodes target `youtube-main`.
+   `youtube-wip` is the author's working branch with all twelve episodes; that is where "c p" goes
+   unless told otherwise. Never force-push without an explicit go-ahead; when a branch must be
+   rebuilt (e.g. a PR shows only deletions because of a wrong merge base), explain and ask.
 
 ---
 
@@ -359,10 +477,11 @@ The author reads only the final message. It must stand on its own.
 
 `python3 youtube/tools/check_scenario.py youtube/NN-slug/scenario.md` prints the spoken word
 count and minutes, leftover `{comments}`, banned phrases (from §2), suspected staccato runs,
-Polish characters and placeholders. Exit code 1 means something blocking. Run it before every
+Polish characters, placeholders, and whether the times in `images/README.md` match the stage
+directions. Exit code 1 means something blocking. Run it before every
 hand-over; paste its first line (words and minutes) in the message.
 
-Length guide: 3 to 8 minutes, aim for 5 to 7. If a draft runs long, cut the asides and the second
+Length guide: 3 to 8 minutes, aim for 5 to 7; 7.5 was accepted for episode 02. If a draft runs long, cut the asides and the second
 example first, never the explanation of the one thing the episode is about.
 
 ---
@@ -375,8 +494,8 @@ later episode must not leak in, beyond a one-clause teaser.
 | # | Episode | Kind | Must not |
 |---|---|---|---|
 | 01 | Codecs (approved) | CONCEPT | GOPs, I/P/B frames, quantisation, container details |
-| 02 | Containers, muxing, demuxing | CONCEPT | MP4 box structure, fragmented MP4, HLS/CMAF |
-| 03 | Membrane basics: elements, pads, plugins | MEMBRANE | callback details, flow control, bins |
+| 02 | Containers, muxing, demuxing (approved) | CONCEPT | MP4 box structure, fragmented MP4, HLS/CMAF, reading header numbers aloud |
+| 03 | Membrane basics: elements, pads, plugins | MEMBRANE | callback details, flow control, bins. Must open with the general idea: media processing as a dataflow graph (GStreamer, FFmpeg filter graphs) |
 | 04 | Describing a pipeline: callbacks, actions, spec | MEMBRANE | writing elements, demand |
 | 05 | Raw video in memory: frames, RGB, I420 | CONCEPT | colour science, chroma siting, HDR |
 | 06 | Writing an element: pads, callbacks, buffers | MEMBRANE | manual demand, bins |
@@ -387,7 +506,12 @@ later episode must not leak in, beyond a one-clause teaser.
 | 11 | Live streams: push, toilet, buffer or drop | CONCEPT+MEMBRANE | adaptive bitrate, CDN |
 | 12 | Composing: Bins, dynamic pads, notifications | MEMBRANE | writing a Bin from scratch |
 
-Episodes 02 to 12 exist as drafts written before the voice rules and the finished-example rule
+A **raw audio** CONCEPT episode (samples, sample rate, bit depth, channels, PCM; Membrane part:
+Transcoder to raw audio into `Membrane.PortAudio.Sink`) is planned as the audio twin of 05, to sit
+between the framework episodes; the author also considered moving 05 up between 03 and 04 so that
+concept and framework episodes alternate. Confirm numbering with the author before creating it.
+
+Episodes 03 to 12 exist as drafts written before the voice rules and the finished-example rule
 were settled. **Treat them as raw material, not as scripts.** When asked to work on one, run the
 full loop of §5 on it: a style pass alone is not enough, the examples and facts need the §4
 treatment, and the structure needs to match episode 01.
@@ -405,4 +529,9 @@ treatment, and the structure needs to match episode 01.
 - [ ] A fresh reviewer has done the three passes and every finding is applied or answered.
 - [ ] Graphics rendered in both variants, looked at, named in script order, listed in
       `images/README.md`, referenced from the stage directions. No code graphics, nothing licensed.
+      Build-up steps identical in size; highlights as in §6; the author has seen rendered variants
+      for every subjective choice.
+- [ ] A fresh reviewer has read the final text **after the last edit**, with the PNGs open.
+- [ ] If the episode shows a pipeline: `example/` exists, its spec matches the slide byte for byte,
+      it was run from its directory with a clean terminal, the output was probed and deleted.
 - [ ] Hand-over message per §8. Nothing committed unless asked.

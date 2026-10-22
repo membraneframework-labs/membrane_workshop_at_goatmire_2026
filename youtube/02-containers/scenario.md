@@ -130,6 +130,8 @@ spec = [
   |> child(:mp4_muxer, Membrane.MP4.Muxer.ISOM)
   |> child(:mp4_file_sink, %Membrane.File.Sink{location: "result.mp4"}),
 
+  # child(:ivf_file_source, ...) |> ... |> child(:mp4_file_sink, ...)
+
   child(:mp3_file_source, %Membrane.File.Source{
     location: "bbb.mp3",
     content_format: Membrane.MPEGAudio
@@ -137,7 +139,8 @@ spec = [
   |> child(:audio_transcoder, Membrane.Transcoder)
   |> via_out(:output,
     options: [
-      output_stream_format: %Membrane.Transcoder.OutputFormat.AAC{config: :esds}
+      output_stream_format: 
+        %Membrane.Transcoder.OutputFormat.AAC{config: :esds}
     ]
   )
   |> get_child(:mp4_muxer)

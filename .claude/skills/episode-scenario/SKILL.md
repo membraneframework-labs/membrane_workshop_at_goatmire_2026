@@ -234,6 +234,35 @@ would not run is a bug in the script.
    the workshop calls it an element, the author calls it "a Membrane component". Use "component"
    for it and "element" for real elements. Don't introduce the word "Bin" before episode 12.
 
+**The `example/` directory: a runnable demo of the slide code.** Every episode whose Membrane
+part shows a pipeline gets `youtube/NN-slug/example/` with:
+
+- one script, named after what it does, no suffix (`mp3_to_mp4.exs`, `ivf_mp3_to_mp4.exs`),
+  runnable with plain `elixir <script>` from inside that directory, outside the Mix project;
+- the input fixtures next to it, under the file names the slide code uses (`input.mp3`,
+  `bbb_vp8.ivf`, `bbb.mp3`), copied from `assets/`;
+- a `.gitignore` listing the output file the script writes.
+
+The script is, top to bottom: `Mix.install` with the same three-component version requirements as
+the root `mix.exs` (loose `~> 0.36` would drift to a breaking 0.x release; the Transcoder brings the
+codec plugins transitively, file/ivf plugins must be listed); `Logger.configure(level: :error)` so
+the terminal stays empty on camera (`:warning` shows one benign FDK encoder line, no configure at
+all shows a thousand debug lines); a pipeline **module** (`use Membrane.Pipeline`, never
+`RCPipeline`) whose `handle_init` returns the spec **byte for byte as on the slide**, including the
+slide's line layout and child names, with straight quotes even if Keynote shows curly ones; two
+`handle_element_end_of_stream` clauses, the sink's returning `terminate: :normal`, a catch-all
+returning `{[], state}`; then `Membrane.Pipeline.start_link(Module)`, `Process.monitor` on the
+pipeline pid and a `receive` for `:DOWN`. Nothing else: no comments, no options, no state beyond
+`%{}`. See `youtube/01-codecs/example/mp3_to_mp4.exs` for the shape.
+
+Before handing over: run each script from its directory, check exit 0 and an empty terminal, run
+`ffprobe -hide_banner` on the output and confirm the streams the episode promises, then delete the
+output. Tell the author to run each script once on the recording machine beforehand, because the
+first `Mix.install` compiles native libraries for minutes; after that a run takes under a second.
+Known quirk: the Transcoder's MP3 → AAC path produces mono from a stereo MP3 and there is no slide
+level option to change it, so ffprobe will show "mono" on camera; the script must not pretend
+otherwise.
+
 **Facts already verified for this project** (reuse, don't re-derive):
 
 - 1920 × 1080 = 2 073 600 px; × 3 B = 6.2 MB/frame; × 30 fps ≈ 187 MB/s; × 7200 s ≈ 1.3 TB.
@@ -503,4 +532,6 @@ treatment, and the structure needs to match episode 01.
       Build-up steps identical in size; highlights as in §6; the author has seen rendered variants
       for every subjective choice.
 - [ ] A fresh reviewer has read the final text **after the last edit**, with the PNGs open.
+- [ ] If the episode shows a pipeline: `example/` exists, its spec matches the slide byte for byte,
+      it was run from its directory with a clean terminal, the output was probed and deleted.
 - [ ] Hand-over message per §8. Nothing committed unless asked.

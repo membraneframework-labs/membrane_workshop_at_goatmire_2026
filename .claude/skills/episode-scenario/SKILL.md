@@ -21,6 +21,99 @@ file-anatomy build-up); where the two differ, follow 02.
 
 ---
 
+## 0. What the author wants in a transcript, distilled
+
+This section is the synthesis of every reaction the author had while episodes 00, 01 and 02 were
+written: what they rejected, what they rewrote by hand, what they accepted without a word. Read it
+before drafting. The goal is a first draft they can record with only small edits. Sections 1 to 11
+hold the full rules; this is the shape of the target.
+
+**The sound.** A knowledgeable colleague explaining something across a desk, in full sentences, at a
+calm pace. Not a YouTuber, not a lecturer, not a copywriter. The author rewrote or deleted, every
+single time, anything that sounded performed: short punchy fragments, dramatic pauses written as
+sentence breaks, "here's the thing", "that's it", "the one thing to remember", lists of three for
+rhythm, clever closers. They kept and wrote themselves: long, slightly loose sentences joined with
+"and", "so", "because"; "a bunch of short videos"; "you give it X, it gives you back Y". Their own
+hand-written lines are the best calibration: *"We will present you a bunch of short videos, each
+explaining a single idea."* *"Now, let's build this pipeline in Membrane."* *"repackaging is quick,
+re-encoding not at all."* Plain, direct, a little informal, never ornamental.
+
+**Exactly one emphasised sentence per episode**, the idea the episode exists for ("In the middle, you
+hold raw media." / "MP4 is not a codec."). Everything else at the same level. If a draft has three
+sentences that want to be remembered, it has zero.
+
+**Every sentence must be true as stated, at the level of a specialist listening.** The author
+catches every over-generalisation and category slip within seconds: "that makes the codec lossy"
+(most codecs), "none of these are files" (MP3 is), "MP3 is a container" (it is a codec), "most
+plugins wrap FFmpeg" (not true), "the header is 281 bytes" (the frame is), "every media player reads
+the table" (not for IVF or MP3). They prefer a narrower true claim over a wider catchy one, and they
+add the hedge themselves when it is missing ("usually", "almost every device", "where you usually
+work"). When a claim is only true most of the time, say "most" or "usually"; when it is a
+simplification, say what it hides in one clause.
+
+**Firm, not soft.** The fix for an overclaim is a precise claim, not a hedge. "That's all you need
+to know" was rejected as untrue; "should make sense" was rejected as *"too soft"*; "That's the core
+of what containers do, and it's enough to read a pipeline like this one" was accepted. Say exactly
+as much as is true, with confidence.
+
+**Detail budget.** A fact gets airtime only if it carries the point or comes back later. The author
+cut the IVF header field-by-field reading (*"we do not reuse this knowledge anywhere"*), the "last
+two lines" reference in a takeaway (*"people will not remember them"*), the meta-summary of three
+container options (*"does not sound good"*), the codec etymology (*"completely unimportant"*). Numbers
+that carry the point stay (187 MB/s, half a percent, 32 bytes plus 12 per frame); numbers that
+merely decorate go (480, 270, 812, 281). Structure over trivia, always.
+
+**Concrete and current.** "Google Meet or Teams calls" rather than "video calls"; "running AI
+inference on the frames" rather than "switching between streams"; "a blue sky is mostly the same
+blue". Examples the viewer uses today, named by name.
+
+**Nothing assumed, nothing promised.** The viewer has no multimedia background and may not have
+seen any other episode: introduce every term when it first appears in this episode (encoder,
+decoder, element, Transcoder, Membrane itself). No "you've probably seen", no "last episode", no
+"repo", no "workshop". Endings don't promise the next topic; they close the loop on what was just
+shown ("enough to read a pipeline like the one we just saw"), then "Thanks for watching, and see you
+in the next episode."
+
+**The Membrane part is a walk through one real, complete, runnable example**, top to bottom, one
+sentence per line as it appears on the Keynote slide, never jumping around, never summarising
+afterwards. It opens with one or two sentences saying what Membrane is. If the example hides a step
+the concept part just explained (the Transcoder hides the raw media), say so briefly instead of
+hoping nobody notices. The example must be something a professional would actually do (mux into a
+container; don't dump raw H.264 into a file).
+
+**Order and flow.** Concept first, in the order a newcomer needs it; one idea per paragraph; each
+paragraph does one job and hands over to the next. The author called a section "chaotic" when it
+mixed four ideas, and asked for enumerations to be spoken in the order they appear on screen. Where
+the script says something is on screen, the spoken words follow the picture: same terms, same order,
+same number of steps.
+
+**Length.** 6 to 8 minutes of speech, 900 to 1,150 words. Both approved episodes landed around 7
+to 7.5 minutes and the author did not ask for cuts; they asked for cuts of *detail*, never of
+explanation.
+
+**What they strip from the file.** The author deleted "Facts that must land", the duplicated code
+blocks and most boilerplate from episode 01 once it was approved. Keep the file lean: the metadata
+table, Version A with stage directions, Version B. Put code once, as the fenced block the slide is
+made from.
+
+**How they review.** Inline `{comments}` in the markdown, direct rewrites, deletions that must stay
+deleted, and three recurring questions: "does it sound good?", "is it true?", "do we need this?". A
+draft that already answers those three for every sentence is the target.
+
+**First-draft checklist, before showing anything:**
+
+1. Read every spoken paragraph aloud in your head. Anything you would not say to a colleague across
+   a desk gets rewritten.
+2. Find the one emphasised sentence. Flatten every other sentence that is trying to be it.
+3. For every claim, ask whether a Membrane maintainer would wince. Narrow it until they wouldn't.
+4. For every number and every name, ask whether it comes back or carries the point. If not, cut it.
+5. Check that every term is introduced in this episode before it is used.
+6. Check the opening promises what the episode delivers and the ending promises nothing.
+7. Check the code walkthrough goes line by line and ends on the last line.
+8. Run the lint, recompute the timestamps, and only then hand over.
+
+---
+
 ## 1. What the series is, and is not
 
 - **One episode = one thing.** One multimedia concept, or one piece of Membrane. 3 to 8 minutes

@@ -1,8 +1,7 @@
 // Overlay graphics for episode 03 (Membrane basics). See youtube/tools/overlays.cjs for the helpers.
 // Run:  cd presentation && NODE_PATH=node_modules node ../youtube/03-membrane-basics/graphics/render.cjs
-// Add --preview to also render the alternatives for 04-three-kinds into images/_preview/.
 const path = require('path')
-const { colors, box, arrow, varrow, vsplit, vchain, render } = require('../../tools/overlays.cjs')
+const { colors, box, varrow, vsplit, vchain, render } = require('../../tools/overlays.cjs')
 
 const OUT = path.resolve(__dirname, '..', 'images')
 
@@ -26,13 +25,10 @@ const css = `
          color:var(--navy); white-space:nowrap; font-family:'JetBrains Mono', monospace; font-variant-ligatures:none; background:#fff; padding:0 5px; }
 
 /* three kinds, stacked top to bottom; inputs and outputs drawn as arrows, no captions.
-   A: vertical arrows (in from above, out below). B: horizontal arrows (in from the left, out to the right). */
+   The author chose vertical arrows (in from above, out below) and asked for them a little thicker. */
 .kinds { display:flex; flex-direction:column; align-items:center; gap:56px; }
 .kind { display:grid; grid-template-columns:360px; justify-items:center; }
 .kind .varrow.in { grid-row:1; } .kind .el { grid-row:2; } .kind .varrow.out { grid-row:3; }
-.kinds.h { gap:40px; }
-.kinds.h .kind { grid-template-columns:52px 360px 52px; align-items:center; }
-.kinds.h .arrow.in { grid-column:1; } .kinds.h .el { grid-column:2; grid-row:1; } .kinds.h .arrow.out { grid-column:3; }
 .kinds .el { width:360px; }
 
 /* two elements stacked, joined through pads: the output pad on the bottom edge of the upper element,
@@ -98,19 +94,17 @@ const membraneRunsIt = framed('Membrane runs it', player(6))
 const pipelineAndElements = framed('pipeline', player(6, 0))  // the tag sits beside the top box, inside the frame
 
 // ---------- 04 three kinds of elements ----------
-// Each kind is a tile with an arrow in and/or an arrow out. horizontal = variant B.
-const kind = (name, pads, horizontal = false) => {
-  const a = horizontal ? arrow : varrow
-  return `<div class="kind">
-  ${pads.includes('in') ? withClass(a, 'in') : ''}
+// Each kind is a tile with an arrow in and/or an arrow out; the stubs are thicker than pipeline arrows.
+const thickArrow = `<svg class="varrow" viewBox="0 0 16 40"><line x1="8" y1="0" x2="8" y2="26" stroke="${colors.navy}" stroke-width="3.5"/><polygon points="0,24 8,40 16,24" fill="${colors.navy}"/></svg>`
+const kind = (name, pads) => `<div class="kind">
+  ${pads.includes('in') ? withClass(thickArrow, 'in') : ''}
   <div class="el">${name}</div>
-  ${pads.includes('out') ? withClass(a, 'out') : ''}
+  ${pads.includes('out') ? withClass(thickArrow, 'out') : ''}
 </div>`
-}
-const threeKinds = (horizontal = false) => `<div class="kinds ${horizontal ? 'h' : ''}">
-  ${kind('Source', ['out'], horizontal)}
-  ${kind('Filter', ['in', 'out'], horizontal)}
-  ${kind('Sink', ['in'], horizontal)}
+const threeKinds = () => `<div class="kinds">
+  ${kind('Source', ['out'])}
+  ${kind('Filter', ['in', 'out'])}
+  ${kind('Sink', ['in'])}
 </div>`
 
 // ---------- 05 pads ----------
@@ -157,9 +151,4 @@ const graphics = [
   ['08-takeaway', takeaway],
 ]
 
-render(graphics, OUT, null, css).then(() => {
-  if (process.argv.includes('--preview')) {
-    return render([['04-three-kinds-A-vertical-arrows', threeKinds()], ['04-three-kinds-B-horizontal-arrows', threeKinds(true)]],
-      path.join(OUT, '_preview'), null, css)
-  }
-})
+render(graphics, OUT, null, css)

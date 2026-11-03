@@ -23,7 +23,7 @@ file-anatomy build-up); where the two differ, follow 02.
 
 ## 0. What the author wants in a transcript, distilled
 
-This section is the synthesis of every reaction the author had while episodes 00, 01 and 02 were
+This section is the synthesis of every reaction the author had while episodes 00 to 03 were
 written: what they rejected, what they rewrote by hand, what they accepted without a word. Read it
 before drafting. The goal is a first draft they can record with only small edits. Sections 1 to 11
 hold the full rules; this is the shape of the target.
@@ -41,8 +41,55 @@ explaining a single idea."* *"Now, let's build this pipeline in Membrane."* *"re
 re-encoding not at all."* Plain, direct, a little informal, never ornamental.
 
 **Exactly one emphasised sentence per episode**, the idea the episode exists for ("In the middle, you
-hold raw media." / "MP4 is not a codec."). Everything else at the same level. If a draft has three
-sentences that want to be remembered, it has zero.
+hold raw media." / "MP4 is not a codec." / "You describe the graph, and Membrane runs it."). Everything
+else at the same level. If a draft has three sentences that want to be remembered, it has zero. Speak
+it once in its clean form, with no clause spliced into it, and put the same words on the takeaway
+card, where it is the heavier of the two lines. In a MEMBRANE episode the sentence is about what
+Membrane does for you, not about an implementation detail.
+
+**No cold open that performs.** The author on the first cold open of 03 (a staccato list of what a
+player does, closing on "almost every piece of multimedia software is built this way"): *"it sounds
+bad, as if somebody tried too hard to sound cool, without saying anything valuable."* A cold open is
+two to four plain sentences that make a point the episode then earns. Say why the thing matters
+inside the open, not just that it exists. No universal claims ("almost every piece of software").
+
+**Vocabulary the viewer can carry.** Say "Membrane" often ("Membrane elements", "a Membrane
+callback"), the author added it by hand in four places. One word per thing across the whole
+episode: the author chose "graph" over "drawing", "diagram" and "node", and rejected "one line per
+box" because a child can span more lines in another pipeline (say "one call for each box"). No
+Elixir-specific vocabulary unless the episode is about it: the audience may not know Elixir, so no
+"process", "PID", "mailbox", "GenServer"; say "every element runs independently of the others, and
+Membrane and Elixir take care of the concurrency". No competitor frameworks by name (GStreamer was
+removed on sight); a ready-made tool like FFmpeg may be named once, as the thing whose flags are no
+longer enough, which is the one sentence of "why Membrane" the author wants.
+
+**What Membrane is gets a paragraph, early.** In the first MEMBRANE episode, and in any episode where
+Membrane carries more than a closing example, a short paragraph right after the intro says what it
+is: an open-source framework for this kind of software in Elixir, a library you add to your project,
+you describe the graph and Membrane runs it (starts every step, moves the data, tells you when
+something happens), and one sentence on why: a pipeline customised exactly to your needs, for the
+cases where a ready-made tool is not enough. The author moved it there themselves and wrote the last
+two sentences. In CONCEPT episodes the two-sentence version from episodes 01 and 02 is enough.
+
+**What the author rewrote by hand in 03** (the calibration for the next draft): they moved the
+"what Membrane is" paragraph to right after the intro and added its "why" ("Its advantage is that
+you can build a pipeline customised exactly to your needs. That matters in non-standard cases, where
+fiddling with the flags of a ready-made tool like FFmpeg isn't enough anymore."); they replaced
+clever precision with plain statements ("every sample has already been handed to it and nothing more
+is coming" became "all the elements we spawned are done with their processing"; "Actions are simply
+instructions for the framework"); they named things fully ("the file source", "Each Membrane
+callback", "Where do Membrane elements come from"); they preferred "where a stream is consumed" and
+"Sinks might, for example, save the stream to a file or pass it to the speakers" over terser forms;
+they credited concurrency to "Membrane and Elixir" without naming processes; and they made the
+sign-off its own paragraph. Prompted changes in the same round: plain cold open with the point
+inside it, no GStreamer, graph as the one word, sentences under 30 words, vertical three-kinds
+overlay with arrows and no captions, pads overlay vertical to match, a what-Membrane-is paragraph.
+
+**Fewer rules, fewer asides.** In 03 the author cut, one by one: the dangling-pads rule, the
+optional-pads clause, "the name filter is misleading", the muxer/demuxer gloss, "with an error naming
+the pad", the three format examples on a pad, the chunk-by-chunk dataflow term, the meta line "that's
+enough to read a pipeline like the one we just saw". Keep only the rules the example on screen needs.
+A MEMBRANE episode explains what the viewer sees in the code and nothing the code does not show.
 
 **Every sentence must be true as stated, at the level of a specialist listening.** The author
 catches every over-generalisation and category slip within seconds: "that makes the codec lossy"
@@ -89,9 +136,10 @@ mixed four ideas, and asked for enumerations to be spoken in the order they appe
 the script says something is on screen, the spoken words follow the picture: same terms, same order,
 same number of steps.
 
-**Length.** 6 to 8 minutes of speech, 900 to 1,150 words. Both approved episodes landed around 7
-to 7.5 minutes and the author did not ask for cuts; they asked for cuts of *detail*, never of
-explanation.
+**Length.** 6 to 8 minutes of speech, 900 to 1,150 words. The approved episodes landed around 7
+to 7.7 minutes and the author did not ask for cuts; they asked for cuts of *detail*, never of
+explanation. When an added paragraph pushes the count over 1,150, cut detail elsewhere in the same
+pass instead of handing over an eight-minute script.
 
 **What they strip from the file.** The author deleted "Facts that must land", the duplicated code
 blocks and most boilerplate from episode 01 once it was approved. Keep the file lean: the metadata
@@ -110,9 +158,13 @@ draft that already answers those three for every sentence is the target.
 3. For every claim, ask whether a Membrane maintainer would wince. Narrow it until they wouldn't.
 4. For every number and every name, ask whether it comes back or carries the point. If not, cut it.
 5. Check that every term is introduced in this episode before it is used.
-6. Check the opening promises what the episode delivers and the ending promises nothing.
+6. Check the opening promises what the episode delivers and the ending promises nothing. The
+   sign-off is its own paragraph: "Thank you for watching, and see you in the next episode."
 7. Check the code walkthrough goes line by line and ends on the last line.
-8. Run the lint, recompute the timestamps, and only then hand over.
+8. Check that no spoken sentence is over 30 words and no line of the file is over 100 characters
+   (the author reads the file in VS Code without wrapping; wrap stage directions too).
+9. Run the lint, recompute the timestamps (`youtube/tools/retime.py`), re-sync the README times,
+   and only then hand over.
 
 ---
 
@@ -133,8 +185,9 @@ draft that already answers those three for every sentence is the target.
   is fine ("In the next episode we'll look at containers").
 - **The intro's promise binds every episode:** "every video starts with the concept itself, the part
   that holds no matter what language or tool you use, then how it looks in Membrane". So a MEMBRANE
-  episode opens with its tool-independent idea (a pipeline is a dataflow graph, as in GStreamer or
-  FFmpeg filter graphs; backpressure is a general problem) before any Membrane vocabulary.
+  episode opens with its tool-independent idea (a media player is a graph of steps; backpressure
+  is a general problem) before any Membrane vocabulary. Do not name other frameworks to make the
+  point; the author removed GStreamer from 03 ("I would not mention GStreamer at all").
 - **Detail budget.** A fact earns a sentence only if it carries the episode's point or is used again
   later. The author on reading an IVF header field by field: *"we do not reuse this knowledge
   anywhere"*. Show structure, don't recite numbers. When in doubt, cut the number and keep the shape.
@@ -207,6 +260,14 @@ colon-joined definition ("X is Y: it does A, B and C") is usually two sentences.
 - Introduce every term the first time it appears in **this** episode, even if episode 01 had it:
   encoder, decoder, Transcoder, element. Five words are enough ("a Transcoder, a component that
   re-encodes the stream").
+- Flourishes that sound written: "Only then does it…", "What's interesting is that…", "almost line
+  for line", "shipped in plugins". The author called the last two "too punchy". Say the plain
+  version: "Then it…", "And none of those steps needs to…", "they come from plugins".
+- Claims of independence that a specialist knows are not absolute: "none of those steps knows
+  anything about the others" is false once audio and video must stay in sync. Say "needs to know
+  how the others work inside" and "cares only about what comes in and what goes out".
+- Formulations that depend on how the code happens to be formatted ("one line per box"); say what
+  the code does ("one call for each box").
 
 **Preferred shapes:**
 
@@ -437,6 +498,16 @@ with the workflow"); do it without being asked.
 directions (the `Read` tool renders PNGs) and check that words and pictures agree: same terms,
 same order, same number of build-up steps, nothing highlighted that the text doesn't mention.
 
+**Graphics get their own review rounds.** After rendering, run a fresh reviewer over the PNGs alone
+(with §6 and the stage directions), apply, re-render, and repeat until a round returns "no
+findings". Episode 03 needed three rounds; the first two found clipped arrowheads, unequal tile
+widths, a label running off the card, an empty second line on cards, and README rows that no longer
+matched. A quick final round (lower effort) that only re-checks the last fixes closes the loop.
+
+**The loop ends with "no findings", not with a tired writer.** Before the hand-over, one closing
+reviewer pass over the whole Version A plus the pictures must come back empty or with nits only.
+Then hand over. The author wants to be able to walk away and come back to a finished episode.
+
 If any role is unsure about a fact, the answer is to open the source, not to soften the sentence.
 
 ---
@@ -483,6 +554,18 @@ The editor pastes graphics **next to the author's head**, so they are overlays, 
   graphic is composed. Render two or three variants into `images/_preview/` and let them choose.
   The author: *"I need to see it with my own eyes, instead of reading a description."* Never ask
   them to imagine a graphic.
+- **Settled on episode 03:** every element tile is 360 CSS px wide (the `.vcol .box` width),
+  in every overlay of the episode, so the same element looks the same at 3:15 and at 4:35. Inputs
+  and outputs of an element are arrows (in from above, out below), not pad squares; pad squares
+  appear only in the overlay about pads, placed exactly where the arrow stubs were. No captions or
+  sublabels under tiles ("only outputs · starts the stream" was removed): a tile carries its name,
+  nothing else. The card's left and right margins are equal (112 px at 2x); labels positioned
+  absolutely add no width, so reserve the space they need with padding or the label runs off the
+  card. The split and merge arrows need `overflow:visible` on their SVG (the shared library has it
+  now) or the arrowheads are cut in half. The takeaway card has two lines, the emphasised sentence
+  heavier (navy, 600) and the other muted. A graph inside a labelled frame (`.group.framed`) is the
+  way to say "this whole thing is a pipeline" or "Membrane runs it"; tag one tile with a short
+  leader line for "this is an element".
 - **Verify renders at the pixel level.** Look at every PNG you produced. Check that all steps of a
   build-up have the same width and height (read the PNG header). After changing an opacity or a
   colour, confirm it landed (a sed that didn't match leaves the old PNG in place, which happened
@@ -551,7 +634,9 @@ rewrite. They may also delete sentences or rewrite lines directly without a comm
 
 ## 8. Hand-over message
 
-The author reads only the final message. It must stand on its own.
+The author reads only the final message. It must stand on its own, and it must be short: when a
+message ran long the author answered *"so what is the point? I don't want to read your whole
+response"*. Lead with the point in one sentence. One line per item after that.
 
 1. What is done, in two sentences.
 2. For a revision: one bullet per comment, what you did with it. For a new episode: the spoken
@@ -578,6 +663,9 @@ count and minutes, leftover `{comments}`, banned phrases (from §2), suspected s
 Polish characters, placeholders, and whether the times in `images/README.md` match the stage
 directions. Exit code 1 means something blocking. Run it before every
 hand-over; paste its first line (words and minutes) in the message.
+
+The lint also flags spoken sentences over 30 words (PROBLEM) and 26 to 30 words (note). Keep every
+line of the file under 100 characters, stage directions included; wrap them like prose.
 
 Length guide: 3 to 8 minutes, aim for 5 to 7; 7.5 was accepted for episode 02. If a draft runs long, cut the asides and the second
 example first, never the explanation of the one thing the episode is about.

@@ -23,8 +23,6 @@ size, so cut from one to the next as the line is spoken and nothing jumps.
 | `07-pipeline-1` … `07-pipeline-4` | 4:35 | The example pipeline, three tiles top to bottom: File source, MP3 decoder, Audio sink. `-1` plain, then each tile highlighted in turn (highlighted element filled navy, the rest dimmed), one per sentence |
 | `08-takeaway` | 7:25 | The takeaway sentences |
 
-`_preview/` holds the alternatives for `04-three-kinds` (A: vertical arrows, the one in use; B: horizontal
-arrows); delete it once decided.
 
 Code snippets are not here on purpose: they come from the Keynote presentation. No licensed
 material is used; everything is drawn from HTML and CSS.
@@ -39,4 +37,3 @@ cd presentation
 NODE_PATH=node_modules node ../youtube/03-membrane-basics/graphics/render.cjs
 ```
 
-Add `--preview` to also re-render `_preview/`.

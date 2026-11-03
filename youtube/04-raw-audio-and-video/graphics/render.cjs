@@ -127,10 +127,12 @@ const px = (c, i, step) => {
 }
 const rows = step => {
   const gridW = W * PITCH - GAP, gridH = H * PITCH - GAP
+  // the grid stays centred in every step; in step 3 one label goes left of the path and one right
+  // of the bracket, so the picture stays balanced without moving the grid
   const gx = (1242 - gridW) / 2, gy = (202 - gridH) / 2
   let inner
   if (step === 1) inner = `<div class="strip1">${PIC.map((c, i) => px(c, i, 1)).join('')}</div>`
-  else inner = `<div class="grid">${PIC.map((c, i) => px(c, i, step)).join('')}</div>`
+  else inner = `<div class="grid" style="position:absolute; left:${gx}px; top:${gy}px">${PIC.map((c, i) => px(c, i, step)).join('')}</div>`
   let overlay = ''
   if (step === 3) {
     // the path: down past two rows at the left edge, then along the third row to the found pixel
@@ -144,12 +146,12 @@ const rows = step => {
       <line x1="${gx + gridW + 12}" y1="${gy + 2 * PITCH - GAP}" x2="${gx + gridW + 32}" y2="${gy + 2 * PITCH - GAP}" stroke="${colors.navy}" stroke-width="3"/>
     </svg>
     <div class="rowlbl" style="left:${gx + gridW + 46}px; top:${gy + PITCH - GAP - 16}px">skip 2 full rows</div>
-    <div class="rowlbl" style="left:${gx + gridW + 46}px; top:${yRow - 16}px">then 3 along the row</div>`
+    <div class="rowlbl" style="right:${1242 - (x0 - 22)}px; top:${yRow - 16}px">then 3 along the row</div>`
   }
   const caption = [
-    'one frame: the pixels one after another, row by row',
+    'one frame: the pixels one after another',
     'the width says where one row ends and the next begins',
-    'skip the rows above it, then move along its row',
+    '&nbsp;',  // step 3: the two labels say it
   ][step - 1]
   return `<div class="rows"><div class="rowsbox s${step}">${inner}${overlay}</div><div class="caption">${caption}</div></div>`
 }
@@ -172,20 +174,20 @@ const rgb = `<div class="rgb">
 const i420 = `<div class="i420"><div class="planes">
   <div class="plane"><div class="pl y"></div><div class="lbl">Y · brightness<small>1 byte per pixel</small></div></div>
   <div class="uv">
-    <div class="plane"><div class="pl u"></div><div class="lbl">U<small>1 byte per 2×2 block</small></div></div>
-    <div class="plane"><div class="pl v"></div><div class="lbl">V<small>1 byte per 2×2 block</small></div></div>
+    <div class="plane"><div class="pl u"></div><div class="lbl">U · colour<small>1 byte per 2×2 block</small></div></div>
+    <div class="plane"><div class="pl v"></div><div class="lbl">V · colour<small>1 byte per 2×2 block</small></div></div>
   </div>
 </div><div class="caption">1.5 bytes per pixel on average</div></div>`
 
 // ---------- 05 samples ----------
 const samples = (() => {
-  const w = 1100, h = 430, mid = 200, amp = 112
+  const w = 1100, h = 400, mid = 170, amp = 112
   const f = x => Math.sin(x / 95) * 0.75 + Math.sin(x / 41 + 1.2) * 0.25
   const pts = []
   for (let x = 40; x <= w - 40; x += 4) pts.push(`${x},${(mid - amp * f(x)).toFixed(1)}`)
   const step = 48, dots = []
   for (let x = 64; x <= w - 60; x += step) dots.push(x)
-  const labelled = new Set([1, 4, 8, 12, 16, 20])
+  const labelled = new Set([1, 4, 7, 12, 15, 20])  // the peaks and troughs themselves
   const SCALE = 700 // the values the labels show, a 16-bit sample would go up to 32 767
   return `<svg class="wave" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
     <line x1="30" y1="${mid}" x2="${w - 30}" y2="${mid}" stroke="#cfd6e8" stroke-width="2"/>
@@ -206,21 +208,20 @@ const STEREO = [['0f', 'fe', -497], ['95', '01', 405], ['34', 'fe', -460], ['fb'
 const interleaved = `<div class="samples">
   <div class="scells">${STEREO.map(([b0, b1, v], i) => `<div class="sample ${i % 2 ? 'r' : 'l'}">
     <div class="ch">${i % 2 ? 'R' : 'L'}</div>
-    <div class="two"><div class="byte">${b0}</div><div class="byte">${b1}</div></div>
-    <div class="val">${v < 0 ? '−' + (-v) : v}</div></div>`).join('')}</div>
+    <div class="two"><div class="byte">${b0}</div><div class="byte">${b1}</div></div></div>`).join('')}</div>
   <div class="caps"><span>one sample = 2 bytes</span><span>stereo, interleaved</span></div>
 </div>`
 
-// ---------- 07 stream format cards ----------
+// ---------- 08 stream format cards ----------
 const streamFormat = `<div class="pills">
   <div class="pill"><h3>Raw video</h3><div><b>width</b></div><div><b>height</b></div><div><b>pixel format</b></div></div>
   <div class="pill"><h3>Raw audio</h3><div><b>sample rate</b></div><div><b>sample format</b></div><div><b>channels</b></div></div>
 </div>`
 
-// ---------- 07a the sentence ----------
+// ---------- 07 the sentence ----------
 const sentence = `<div class="huge">Raw data doesn't describe itself.</div>`
 
-// ---------- 08 pipeline ----------
+// ---------- 09 pipeline ----------
 const pipeline = (() => {
   const b = (t, sub) => box(t + (sub ? `<small>${sub}</small>` : ''))
   const video = vchain(stream('bbb_vp8.ivf'), b('File.Source'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'), b('File.Sink'), stream('video.raw'))
@@ -228,11 +229,11 @@ const pipeline = (() => {
   return `<div class="vcols top">${video}${audio}</div>`
 })()
 
-// ---------- 09 terminal ----------
+// ---------- 10 terminal ----------
 const h = t => sp('hl', t)
-const SIZES = [['bbb_vp8.ivf', '1 031 399'], ['video.raw', '157 852 800'], ['bbb.mp3', '529 492'], ['audio.raw', '5 833 728']]
-const listing = `${sp('d', '$ ')}ls -l
-${SIZES.map(([n, s]) => `${sp('d', '-rw-r--r--')}  ${s.padStart(11)}  ${n}`).join('\n')}`
+const SIZES = [['bbb_vp8.ivf', '1031399'], ['video.raw', '157852800'], ['bbb.mp3', '529492'], ['audio.raw', '5833728']]  // byte counts
+const listing = `${sp('d', '$ ')}wc -c ${SIZES.map(([n]) => n).join(' ')}
+${SIZES.map(([n, s]) => `${s.padStart(9)} ${n}`).join('\n')}`  // as wc -c prints them, total line left out
 const ffplayVideo = `${sp('d', '$ ')}ffplay ${h('-f rawvideo')} ${h('-pixel_format yuv420p')} ${h('-video_size 480x270')} ${h('-framerate 25')} video.raw`
 const ffplayAudio = `${sp('d', '$ ')}ffplay ${h('-f s16le')} ${h('-ar 44100')} ${h('-ch_layout stereo')} audio.raw`
 const terminalOne = `<div class="term">${listing}
@@ -243,9 +244,9 @@ const terminalSizes = `<div class="term">${listing}</div>`
 const terminalFfplay = `<div class="term">${ffplayVideo}
 ${ffplayAudio}</div>`
 
-// ---------- 10 takeaway ----------
+// ---------- 11 takeaway ----------
 const takeaway = `<div class="big">Raw data doesn't describe itself.</div>
-<div class="big muted" style="margin-top:18px">Resolution and pixel format. Sample rate, sample format and channels.</div>`
+<div class="big muted" style="margin-top:18px; font-weight:500">Resolution and pixel format.<br>Sample rate, sample format and channels.</div>`
 
 const graphics = [
   ['01-hexdump', hexdump],
@@ -254,18 +255,18 @@ const graphics = [
   ['04-i420', i420],
   ['05-samples', samples],
   ['06-interleaved', interleaved],
-  ['07-stream-format', streamFormat],
-  ['07a-sentence', sentence],
-  ['08-pipeline', pipeline],
-  ['09-terminal', terminalOne],
-  ['10-takeaway', takeaway],
+  ['08-stream-format', streamFormat],
+  ['07-sentence', sentence],
+  ['09-pipeline', pipeline],
+  ['10-terminal', terminalOne],
+  ['11-takeaway', takeaway],
 ]
 
 render(graphics, OUT, null, css).then(() => {
   if (process.argv.includes('--preview')) {
     return render([
-      ['09-terminal-A-one-panel', terminalOne],
-      ['09-terminal-sizes', terminalSizes], ['09-terminal-ffplay', terminalFfplay],
+      ['10-terminal-A-one-panel', terminalOne],
+      ['10-terminal-sizes', terminalSizes], ['10-terminal-ffplay', terminalFfplay],
     ], path.join(OUT, '_preview'), null, css)
   }
 })

@@ -33,25 +33,26 @@ left, then Decode audio on the right, two steps in quick succession), "pictures 
 
 **[1:05] On camera**
 
-> In this video I'll explain how software that processes media streams is usually structured: as a
-> graph of small steps that the media flows through. Then I'll show how that graph looks in
-> Membrane. We'll see what a Membrane element is, what a pad is, where elements come from, and how a
-> complete pipeline is written.
+> in this video, we will explore how processing of media streams is usually structured. 
+> We will see how Membrane Framework handles it with its Pipelines and Elements.
+> Then, at the end, we will go through a simple, concrete exmple.
+
 
 **[1:30] On camera. Overlay `02-membrane-runs-it.png` on "You describe the graph": the player
 graph from the cold open inside a frame labelled "Membrane runs it".**
 
 > But first, in case you don't know Membrane yet, a few words about what it is. Membrane is an
 > open-source framework for building this kind of software in Elixir. It's a library you add to your
-> project. You describe the graph, and Membrane runs it. You say which steps there are and how they
-> connect. Membrane starts every step, moves the data between them and tells you when something
-> happens, like the end of a stream. Its advantage is that you can build a pipeline customised
-> exactly to your needs. That matters in non-standard cases, where fiddling with the flags of a
+> project. You describe the graph processing steps, and Membrane runs it. Membrane starts every step, 
+> moves the data between the steps and tells you when something
+> happens, like that the stream has ended. Its advantage is that you can build a pipeline customised
+> exactly to your needs, or even define your custom processing steps. That matters especially in 
+> non-standard cases, where fiddling with the flags of a
 > ready-made tool like FFmpeg isn't enough anymore.
 
 **[2:15] Overlay `01-player-6.png` comes back for this section.**
 
-> Now, back to the player. None of those boxes ever holds the whole movie at once. The data goes
+> Now, let's go back to the player. None of those boxes ever holds the whole movie at once. The data goes
 > through in small chunks, one after another, so different boxes can be busy with different chunks
 > at the same time.
 
@@ -69,8 +70,8 @@ below), no captions. Speak them in screen order.**
 > There are three kinds of elements you'll meet in almost every pipeline. A source has only outputs,
 > and it's where a stream starts. It might read a file or receive data from the network. A filter
 > has both inputs and outputs, so it takes a stream in and gives a stream out. Decoders are filters,
-> and so are encoders, which compress rather than unpack. Most of what you write yourself will be a
-> filter too. And a sink has only inputs, and it's where a stream is consumed. Sinks might, for
+> and so are encoders, muxers and demuxers. Most of what you write yourself will be a
+> filter too. And finally, a sink. It has only inputs, and it's where a stream is consumed. Sinks might, for
 > example, save the stream to a file or pass it to the speakers.
 
 **[3:25] Overlay `05-pads.png`: two elements stacked, MP3 decoder above Audio sink, joined by one
@@ -88,11 +89,11 @@ beside the link.**
 MP4, H.264, WebRTC, and an ellipsis.**
 
 > Where do Membrane elements come from? The framework itself is one package, called membrane core.
-> It knows how to run pipelines, elements and pads, and nothing about any particular media format.
+> It knows how to run pipelines and elements, but nothing about any particular media format.
 > Almost all elements live in separate packages called plugins, usually one per domain. There's a
 > file plugin with a file source and a file sink, and an MP4 plugin with a muxer and a demuxer.
-> There's an H.264 plugin, a WebRTC plugin, and so on. You add the ones you need to your project,
-> and you can write your own.
+> There's an MP3 plugin, a WebRTC plugin, and so on. You can add ready-made plugins to project,
+> or you can write your own too.
 
 **[4:35] Overlay `07-pipeline-1.png`: the example pipeline, three tiles top to bottom: File
 source, MP3 decoder, Audio sink. Then `07-pipeline-2.png`, `-3.png`, `-4.png`: each tile
@@ -101,8 +102,8 @@ highlighted in turn, one per sentence.**
 > Let's look at a complete pipeline. This one plays an MP3 file through your speakers. An MP3 file
 > holds just one audio track, so there is nothing to split, and three elements are enough. The file
 > source reads the file and sends the bytes on. The MP3 decoder turns the compressed audio into raw
-> samples, the plain numbers a sound card can play. And the audio sink hands those samples to the
-> sound card, so we have a source, a filter and a sink.
+> samples, it is the plain numbers a sound card can play. And the audio sink hands those samples to the
+> sound card. This way, we get a pipeline with a single source, a filter and a sink.
 
 **[5:10] Keynote presentation: the module, built up as you speak. The first paragraph is spoken
 over the empty slide. Then the lines appear in order: the `defmodule` and `use` lines, the
@@ -140,7 +141,7 @@ end
 Membrane.Pipeline.start_link(Mp3Player)
 ```
 
-> Now let's look at how it's written. A pipeline is an Elixir module that implements a few
+> Now let's look at how it's written. A Membrane Pipeline is an Elixir module that implements a few
 > callbacks. The framework talks to your module by calling those callbacks, and your module answers
 > by returning actions. Actions are simply instructions for the framework.
 
@@ -151,27 +152,29 @@ Membrane.Pipeline.start_link(Mp3Player)
 > can pass a media stream to the other. This way, the second line adds the decoder, linked to the
 > source, and the third one adds the audio sink, linked to the decoder.
 
-> Each Membrane callback returns two things. The first is a list of actions. In the case of handle
-> init, that list holds one action, spec, with the graph we just described. When the framework gets
+> Each Membrane callback returns two things. The first is a list of actions. In case of our handle
+> init, that list holds just one action, spec, with the graph we just described. When the framework gets
 > it, it starts the three elements, links their pads, and the audio starts to flow.
 
-> The second thing the callback returns is the state of the pipeline. We don't need any in this
+> The second thing the callback returns is the state of the pipeline. We don't need any in our
 > case, so it will just be an empty map.
 
-> One more thing is needed, because the pipeline doesn't know on its own when the job is done. When
-> the file source reaches the end of the file, it sends an end-of-stream signal down the chain.
-> Membrane calls this callback every time one of the elements receives it. We only care about the
-> sink, because when the end of stream gets there, it means that all the elements we spawned are
+> One more thing: pipeline needs to get to know when the processing is completed.
+> To have that, we need to implement one more callback. When
+> the file source reaches the end of the file, it sends an end-of-stream event down the chain.
+> Each time element receives this event, the framework calls handle_child_end_of_stream callback
+> in the pipeline. In our case, we only care about the
+> sink, because when the end of stream gets there, it means that all the elements we started are
 > done with their processing. So for the sink we return the terminate action, which shuts the
 > pipeline down cleanly. For any other element we return no actions at all.
 
-> And the last line starts it: you call start link with the module.
+> improwizacja z runowaniem demo 
 
 **[7:25] Overlay `08-takeaway.png`.**
 
-> So, media processing can be represented as a graph of small steps, and in Membrane that graph is a
-> pipeline of elements, each doing one thing to the stream. They are linked through pads, and they
-> come from plugins. You describe the graph, and Membrane runs it.
+> So, in this episode we learnt that media processing can be represented as a graph of small steps.
+> In Membrane we call that graph a "Pipeline". The steps are called "elements". They are linked 
+> through pads, and the framework defines plenty of them in so-called plugins. 
 
 > Thank you for watching, and see you in the next episode.
 

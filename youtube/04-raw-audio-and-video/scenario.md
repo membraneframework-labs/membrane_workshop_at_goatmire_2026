@@ -20,93 +20,102 @@ colour.**
 > This is a video frame, not a JPEG or a PNG but the frame itself, the way a decoder hands it over.
 > A decoder is the program that turns compressed video back into pictures, and what it gives you is
 > a couple of hundred thousand bytes like these. If I give you only this, you can't draw it, because
-> nothing in here says how wide the picture is or what the bytes mean.
+> nothing in here says how wide the picture is or what the bytes mean. [stiff, the whole paragraph.
+> rephrase it or drop it at all]
 
-**[0:30] Bumper**
+**[0:35] Bumper**
 
-**[0:35] On camera**
+**[0:40] On camera**
 
-> In this video I'll explain what raw video and raw audio look like in memory. On the video side
-> that means frames, resolution and pixel formats. On the audio side it means samples, the sample
-> rate, the sample format and channels. At the end I'll show you how to get at that raw data in
-> Membrane, an open-source multimedia framework for Elixir.
+> In this video I'll explain what raw video and audio are and what they look like in memory. I will
+> go over topics like resolution, pixel formats, sample rate and channels. At the end I'll show you
+> how to get at that raw data in Membrane, an open-source multimedia framework for Elixir.
 
-**[1:00] Overlays `02-rows-1.png` to `02-rows-3.png`: a strip of pixels as one long row (on "one
-flat block of bytes"), then folded into rows of the frame's width (on "the width tells you"), then
-one pixel found by skipping two rows and moving along the third (on "skip the rows above it").**
+**[1:00] Overlays `02-rows-1.png` to `02-rows-3.png`: twenty-four plain squares, each one pixel
+numbered by its position in memory, 0 to 23: as one long strip (on "one flat block of bytes"),
+then folded into rows of six (on "the width tells you"), then pixel 15 found by skipping two full
+rows and moving three along the third, the rest dimmed (on "skip the rows above it").**
 
+[?idk, maybe we could drop the last sentence of this paragraph and the graphics 3]
 > Let's start with video. A raw video stream is a series of pictures called frames, and each frame
 > is one flat block of bytes, the pixels one after another. They are laid out row by row from the
 > top, left to right. So the first thing you need to know about a frame is its resolution, the width
 > and height in pixels. The width tells you where one row ends and the next one begins. With that,
 > you can find any pixel: skip the rows above it, then move along its row to its column.
 
-**[1:35] Overlay `03-rgb.png`: a two by two frame of four colour swatches, and under it the
-twelve bytes, in threes, tinted red, green and blue.**
+**[1:35] Overlay `03-rgb.png`: the two by two frame of four colour swatches lettered A to D,
+labelled "the picture", and under it the same frame labelled "the same frame in memory": the
+twelve bytes in a dashed strip, in threes under the letter of their pixel, tinted red, green and
+blue, with their positions 0 to 11 underneath, and the key red, green, blue.**
 
 > The second thing you need is the pixel format, which says how many bytes a pixel takes and what
-> they mean. The best-known one is RGB: three bytes per pixel, one for red, one for green and one
-> for blue, each from zero to two hundred fifty-five. Here is a two by two frame: twelve bytes,
-> three for each pixel, the first row and then the second.
+> they mean. The best-known one is RGB: three bytes per pixel. One byte for red, one for green and
+> one for blue. Each of them from zero to two hundred fifty-five. Here is a small, two by two frame.
+> It is represented by twelve bytes, three per pixel.
 
-**[2:05] Overlay `04-i420.png`: one frame drawn as three planes: a full-size brightness plane,
-then two colour planes, each a quarter of the size, with "1.5 bytes per pixel on average" under
-it. Say "I four-twenty".**
+**[2:05] Overlay `04-i420.png`: a six by four picture (sky, a sun, ground), and under it the same
+frame in memory as I420: a dashed memory strip with three planes one after another, the brightness
+plane in greys, then the two colour planes in the colours a video tool shows them, each with its
+byte count (24, 6, 6), and "1.5 bytes per pixel on average" under it. Say "I four-twenty".**
 
-> But that's not what a decoder usually gives you. Decoders mostly hand you one of a family of
-> formats called YUV, where Y is the brightness and U and V carry the colour. Your eye sees fine
-> detail much better in brightness than in colour. So you can keep brightness for every pixel and
-> store the colour once for every block of two by two pixels, and hardly anyone notices. The most
-> common layout is called I420. It splits the frame into three parts called planes: first all the
-> brightness bytes, then the two colour planes, each a quarter of the brightness plane. On average
-> that's one and a half bytes per pixel instead of three, so half the memory for the same picture,
-> before any compression is involved.
+> But that's not what a video decoder usually gives you. Decoders mostly hand you one of a family of
+> formats called YUV. YUV uses the fact that your eye sees fine detail much better in brightness
+> than in colour. So we can keep brightness for every single pixel, while keeping the same colour
+> for a batch of them, like a square two by two. The most common YUV version is I420. It splits the
+> frame into three parts called planes: first all the brightness bytes, then the two colour planes,
+> each a quarter of the brightness plane. On average that's one and a half bytes per pixel instead
+> of three, so half the memory for the same picture, before any compression is involved.
 
-**[2:55] Overlay `05-samples.png`: a sound wave with dots at regular intervals, some of the dots
-labelled with their values.**
+**[2:55] Overlay `05-samples.png`: a plain sine wave with dots at regular intervals, four of the
+dots labelled with their values (a peak, a point on the slope, a trough, one more), no caption.**
 
-> Now let's do the same for audio. Sound is a wave, and raw audio is that wave measured at regular
+> Now let's explain the raw audio. Sound is a wave, and raw audio is that wave measured at regular
 > intervals. Each measurement is called a sample, and it's just a number: how far the wave is from
 > the middle at that moment. How often you measure is the sample rate, typically forty-four thousand
-> one hundred or forty-eight thousand times a second.
+> one hundred times a second.
 
-**[3:20] Overlay `06-interleaved.png`: a row of samples labelled L, R, L, R, two bytes each, with
+**[3:15] Overlay `06-interleaved.png`: a row of samples labelled L, R, L, R, two bytes each, with
 real bytes from the audio file.**
 
 > Then you need the sample format: how big each number is and how to read it. Most of the time
-> that's sixteen-bit integers, two bytes per sample. And you need the number of channels. Stereo has
-> two, left and right, and in memory they are usually interleaved: one sample for the left, one for
-> the right, and so on. So one second of stereo like that, two channels, two bytes each, forty-four
-> thousand one hundred times a second, comes to about a hundred and seventy-six kilobytes. That's
-> far less than video, but still about ten times what one second of MP3 takes.
+> that's sixteen-bit integers. It means two bytes per sample.
 
-**[4:00] Overlay `07-sentence.png`, large: "Raw data doesn't describe itself."**
+> Another thing you need to read raw audio, is the number of channels. Stereo has two, left and
+> right, and in memory they are usually interleaved: one sample for the left, one for the right, and
+> so on. So one second of stereo with two channels takes 2 times more space, than one second of
+> mono audio. With 2 bytes per sample and a standard sampling rate, it takes almost 2 megabytes.
+> That is far less than video, but still about ten times what one second of MP3 takes.
+
+**[4:05] Overlay `07-sentence.png`, large: "Raw data doesn't describe itself."**
 
 > And this is what video and audio have in common. Raw data doesn't describe itself. A raw frame has
-> no header, and neither does a block of samples. The bytes don't say how wide the picture is,
-> whether it's RGB or I420, or how many channels the audio has. All of that has to travel next to
-> the data, and whoever receives the bytes needs it first.
+> no embedded metadata, and neither does a block of samples. The bytes don't say how wide the picture is,
+> whether it's RGB or I420, or how many channels the audio has. You need these information
+> if you want to understand or process it in any way. In case of raw media, all of that has to travel 
+> next to bytes representing pixels or samples.
 
-**[4:30] Overlay `08-stream-format.png`: two cards, "Raw video: width, height, pixel format" and
+**[4:35] Overlay `08-stream-format.png`: two cards, "Raw video: width, height, pixel format" and
 "Raw audio: sample rate, sample format, channels".**
 
-> So how does this look in Membrane? In Membrane, you describe media processing as a graph of
+> So how does this look in Membrane?  In Membrane, you describe media processing as a graph of
 > elements, called a pipeline, where each element does one thing with the stream and passes it on.
-> Before any data goes from one element to the next, the element sends a stream format, which
-> carries that description. For raw video, that's the width, the height and the pixel format. For
-> raw audio, the sample rate, the sample format and the number of channels. Then the data follows,
-> and every element down the line knows how to read it.
+> (BTW, if you still don't know what Membrane is, check out this: ___)
+> Before any data goes from one element to the next, the element sends a thing we call a stream format.
+> Stream format describes the stream, that will be sent or received via a Membrane Pad. 
+> For raw video, it contains the width, the height and the pixel format. For
+> raw audio, ir provides the sample rate, the sample format and the number of channels. Then the data follows,
+> so element that receives the stream knows how to read it.
 
-**[5:05] Overlay `09-pipeline.png`: the pipeline, data flowing top to bottom, the video branch on
+**[5:25] Overlay `09-pipeline.png`: the pipeline, data flowing top to bottom, the video branch on
 the left (file source, IVF deserializer, Transcoder, file sink), the audio branch on the right
 (file source, Transcoder, file sink).**
 
-> Normally you don't see the raw data at all, because the Transcoder, a component that converts
-> media from one compressed format to another, decodes and encodes inside itself. But you can ask it
+> Many times you will not see the raw data at all, because the Transcoder, a component that converts
+> media from one compressed format to another, decodes and encodes the stream inside itself. But you can ask it
 > for raw output instead. Here is a pipeline that decodes a video compressed with VP8 and an MP3
 > file, and writes the raw bytes of both to files.
 
-**[5:30] Keynote presentation: the spec, built up line by line as you speak. The first sentence is
+**[5:55] Keynote presentation: the spec, built up line by line as you speak. The first sentence is
 spoken over the empty slide; from the second sentence on, each sentence corresponds to the lines
 that appear at that moment.**
 
@@ -152,8 +161,8 @@ spec = [
 > sixteen-bit samples, forty-four thousand one hundred per second, two channels, so the file comes
 > out exactly in the format we asked for. And a file sink writes the samples to a second file.
 
-**[6:35] Overlay `10-terminal.png`: a terminal panel with the byte counts of the four files (
-`wc -c`, so the spoken "hundred and fifty-eight megabytes" and "almost six megabytes" match what
+**[6:55] Overlay `10-terminal.png`: a terminal panel with the byte counts of the four files
+(`wc -c`, so the spoken "hundred and fifty-eight megabytes" and "almost six megabytes" match what
 is shown), then the two ffplay commands, the format flags highlighted.**
 
 > When this pipeline is done, the video file is a hundred and fifty-eight megabytes for half a
@@ -164,7 +173,7 @@ is shown), then the two ffplay commands, the format flags highlighted.**
 > audio: the sample format, the rate and the channels. Membrane itself takes the frame rate from
 > timestamps, a topic for another episode.
 
-**[7:20] Overlay `11-takeaway.png`.**
+**[7:40] Overlay `11-takeaway.png`.**
 
 > So, a raw frame is a flat block of pixels, read with a resolution and a pixel format. Raw audio is
 > a run of samples, read with a sample rate, a sample format and the number of channels. Raw data
@@ -173,7 +182,7 @@ is shown), then the two ffplay commands, the format flags highlighted.**
 
 > Thank you for watching, and see you in the next episode.
 
-**[7:45] End**
+**[8:10] End**
 
 ---
 

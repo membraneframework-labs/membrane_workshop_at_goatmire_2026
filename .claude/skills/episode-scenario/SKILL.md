@@ -566,6 +566,11 @@ The editor pastes graphics **next to the author's head**, so they are overlays, 
   heavier (navy, 600) and the other muted. A graph inside a labelled frame (`.group.framed`) is the
   way to say "this whole thing is a pipeline" or "Membrane runs it"; tag one tile with a short
   leader line for "this is an element".
+- **Almost no text on overlays.** The author: *"avoid long lines of text on slides. Nobody will read
+  it."* A label is two to five words ("the picture", "the same frame in memory", "24 bytes"); no
+  sentences, no captions that repeat what is spoken, no second line that explains the first. If a
+  picture needs a sentence to be understood, redraw the picture. Keep only the words the script
+  points at and the numbers that carry the point.
 - **Verify renders at the pixel level.** Look at every PNG you produced. Check that all steps of a
   build-up have the same width and height (read the PNG header). After changing an opacity or a
   colour, confirm it landed (a sed that didn't match leaves the old PNG in place, which happened

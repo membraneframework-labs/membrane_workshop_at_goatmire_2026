@@ -32,8 +32,10 @@ hold the full rules; this is the shape of the target.
 calm pace. Not a YouTuber, not a lecturer, not a copywriter. The author rewrote or deleted, every
 single time, anything that sounded performed: short punchy fragments, dramatic pauses written as
 sentence breaks, "here's the thing", "that's it", "the one thing to remember", lists of three for
-rhythm, clever closers. They kept and wrote themselves: long, slightly loose sentences joined with
-"and", "so", "because"; "a bunch of short videos"; "you give it X, it gives you back Y". Their own
+rhythm, clever closers. They kept and wrote themselves: slightly loose sentences joined with
+"and", "so", "because"; "a bunch of short videos"; "you give it X, it gives you back Y". But not long
+ones: they record these lines on camera and asked to "avoid extra long sentences, put `.`s somewhere".
+Keep a spoken sentence at about 25 words or fewer and split anything over 30. Their own
 hand-written lines are the best calibration: *"We will present you a bunch of short videos, each
 explaining a single idea."* *"Now, let's build this pipeline in Membrane."* *"repackaging is quick,
 re-encoding not at all."* Plain, direct, a little informal, never ornamental.
@@ -166,7 +168,10 @@ say these lines aloud, and asked for text that sounds like a person explaining s
 colleague, not like a YouTube script.
 
 **Write full, plain sentences in a conversational register.** One idea per sentence. Join
-related points with "so", "and", "which", "because" instead of chopping them into fragments.
+related points with "so", "and", "which", "because" instead of chopping them into fragments, but
+stop joining before a sentence passes about 25 words. The author speaks every line on camera and
+long sentences are hard to deliver; anything over 30 words gets a full stop somewhere. A
+colon-joined definition ("X is Y: it does A, B and C") is usually two sentences.
 
 **Banned, with the author's words:**
 
@@ -536,9 +541,9 @@ rewrite. They may also delete sentences or rewrite lines directly without a comm
 - **The author edits the same file while you work.** Before every edit, normalise the blockquote
   wrapping and match on the joined text, not on line breaks; re-read the lines around your target
   if an exact match fails. Several edits were lost to this before the fix.
-- **Re-time after every text change.** Recompute the `[m:ss]` marks from the cumulative word count
-  (150 wpm, 5 s bumper, rounded to 5 s) and sync the times in `images/README.md`; the lint checks
-  they agree.
+- **Re-time after every text change.** `python3 youtube/tools/retime.py youtube/NN-slug/scenario.md --write`
+  recomputes the `[m:ss]` marks from the cumulative word count (150 wpm, 5 s bumper, rounded to
+  5 s); then sync the times in `images/README.md`, the lint checks they agree.
 - The author appreciates one-line corrections of their English in replies (they asked for it).
   Keep it to clear slips, one line, at the end, never preachy.
 
@@ -588,9 +593,8 @@ later episode must not leak in, beyond a one-clause teaser.
 |---|---|---|---|
 | 01 | Codecs (approved) | CONCEPT | GOPs, I/P/B frames, quantisation, container details |
 | 02 | Containers, muxing, demuxing (approved) | CONCEPT | MP4 box structure, fragmented MP4, HLS/CMAF, reading header numbers aloud |
-| 03 | Membrane basics: elements, pads, plugins | MEMBRANE | callback details, flow control, bins. Must open with the general idea: media processing as a dataflow graph (GStreamer, FFmpeg filter graphs) |
-| 04 | Describing a pipeline: callbacks, actions, spec | MEMBRANE | writing elements, demand |
-| 05 | Raw video in memory: frames, RGB, I420 | CONCEPT | colour science, chroma siting, HDR |
+| 03 | Media processing is a graph: elements, pads and pipelines | MEMBRANE | flow control, bins, dynamic pads, `via_in`/`via_out`, callback context, Endpoint as a fourth kind, "pads are checked at link time" (they are checked when the stream format arrives). Opens with the tool-independent idea: a player as a dataflow graph (GStreamer, FFmpeg filter graphs). Example: MP3 file → MP3 decoder → speakers |
+| 04 | Raw audio and video in memory: frames, RGB, I420, samples, PCM | CONCEPT | colour science, chroma siting, HDR, stride, other pixel formats, colour inversion or any custom element, timestamps, "the stream format carries the frame rate" (it is nil in the example). Example: Transcoder asked for raw output, two file sinks |
 | 06 | Writing an element: pads, callbacks, buffers | MEMBRANE | manual demand, bins |
 | 07 | Timestamps: PTS, DTS, pace | CONCEPT | full B-frame reordering algorithm, clocks/sync |
 | 08 | Flow control: backpressure, toilet | CONCEPT+MEMBRANE | internals of demand accounting |
@@ -599,12 +603,12 @@ later episode must not leak in, beyond a one-clause teaser.
 | 11 | Live streams: push, toilet, buffer or drop | CONCEPT+MEMBRANE | adaptive bitrate, CDN |
 | 12 | Composing: Bins, dynamic pads, notifications | MEMBRANE | writing a Bin from scratch |
 
-A **raw audio** CONCEPT episode (samples, sample rate, bit depth, channels, PCM; Membrane part:
-Transcoder to raw audio into `Membrane.PortAudio.Sink`) is planned as the audio twin of 05, to sit
-between the framework episodes; the author also considered moving 05 up between 03 and 04 so that
-concept and framework episodes alternate. Confirm numbering with the author before creating it.
+Episodes 03 and 04 were written on 2026-11-02 and absorbed the old drafts "04 Describing a pipeline"
+(folded into 03) and "05 Raw video" (folded into 04, together with the planned raw audio episode).
+Episodes 06 to 12 keep their old numbers until they are rewritten; 05 is free. Confirm numbering with
+the author before creating a new directory.
 
-Episodes 03 to 12 exist as drafts written before the voice rules and the finished-example rule
+Episodes 06 to 12 exist as drafts written before the voice rules and the finished-example rule
 were settled. **Treat them as raw material, not as scripts.** When asked to work on one, run the
 full loop of §5 on it: a style pass alone is not enough, the examples and facts need the §4
 treatment, and the structure needs to match episode 01.

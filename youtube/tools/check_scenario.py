@@ -74,6 +74,15 @@ def main(path):
     for run in fragment_runs(spoken):
         notes.append(f"check staccato run: \"{run[:100]}\"")
 
+    # Long sentences: the author speaks every line on camera and asked for full stops.
+    # Over 30 words is a PROBLEM, 26 to 30 a note.
+    for sent in re.split(r"(?<=[.!?])\s+", spoken):
+        n = len(sent.split())
+        if n > 30:
+            problems.append(f"sentence of {n} words, split it: \"{sent[:90]}…\"")
+        elif n > 25:
+            notes.append(f"long sentence ({n} words): \"{sent[:90]}…\"")
+
     # Non-English letters anywhere
     if re.search(r"[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]", src):
         problems.append("Polish characters found, file must be 100% English")

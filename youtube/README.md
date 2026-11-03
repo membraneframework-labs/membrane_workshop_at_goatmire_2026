@@ -51,10 +51,9 @@ Everything in these files is in English; the spoken lines are the blockquoted pa
 |---|------|---------------|------|--------|--------|
 | 00 | `00-intro.md` | Multimedia with Membrane 101 (series intro) | TRAILER | 1-2 min | |
 | 01 | `01-codecs/scenario.md` | Why raw video doesn't fit anywhere: codecs | CONCEPT | 6-7 min | Ch. 1 slides "Codecs", "Transcoding" |
-| 02 | `02-containers/scenario.md` | MP4 is not a video format: containers, muxing, demuxing | CONCEPT | 5-6 min | Ch. 1 slides "Containers", "Muxing and demuxing" |
-| 03 | `03-membrane-basics/scenario.md` | Media processing is a graph: elements, pads and plugins | MEMBRANE | 5-6 min | Ch. 1 slides "Membrane in one slide", "Three kinds of elements" |
-| 04 | `04-describing-a-pipeline/scenario.md` | Describing a pipeline in code: callbacks, actions and the spec | MEMBRANE | 6-7 min | Ch. 1 slides "Pipelines" … "Knowing when to stop", DEEP_DIVE Ch. 1 "Pipelines" |
-| 05 | `05-raw-video/scenario.md` | What a video frame looks like in memory | CONCEPT | 5-6 min | Ch. 2 slides "Raw video and RGB", "Color inversion", DEEP_DIVE Ch. 2 |
+| 02 | `02-containers/scenario.md` | MP4 is not a codec: containers, muxing and demuxing | CONCEPT | 7-8 min | Ch. 1 slides "Containers", "Muxing and demuxing" |
+| 03 | `03-membrane-basics/scenario.md` | Media processing is a graph: elements, pads and pipelines | MEMBRANE | 7 min | Ch. 1 slides "Membrane in one slide" … "Knowing when to stop", DEEP_DIVE Ch. 1 "Building blocks", "Pipelines", "Building the pipeline" |
+| 04 | `04-raw-audio-and-video/scenario.md` | What raw audio and video look like in memory | CONCEPT | 7 min | Ch. 2 slides "Raw video and RGB", DEEP_DIVE Ch. 2 "RGB"; raw audio from DEEP_DIVE Ch. 3 and the raw audio format |
 | 06 | `06-writing-an-element/scenario.md` | Anatomy of a Membrane element: pads, callbacks, buffers | MEMBRANE | 6-7 min | Ch. 2 slides "Defining own Elements" … "handle_buffer", DEEP_DIVE Ch. 2 "Creating elements", BONUS (callback context) |
 | 07 | `07-timestamps/scenario.md` | PTS, DTS and why your video plays too fast | CONCEPT | 6-7 min | Ch. 3 slides "Timestamps" … "Offline and online processing", DEEP_DIVE Ch. 3 "Timestamps" |
 | 08 | `08-flow-control/scenario.md` | Backpressure: who sets the pace in a media pipeline | CONCEPT+MEMBRANE | 6-8 min | Ch. 3 slides "Flow control" … "Demand and redemand", DEEP_DIVE Ch. 3 "Flow control" |
@@ -66,14 +65,17 @@ Everything in these files is in English; the spoken lines are the blockquoted pa
 CONCEPT = a multimedia concept, true regardless of tool, with a short Membrane segment.
 MEMBRANE = a piece of the framework, opened with the general idea behind it.
 
+Episodes 03 and 04 absorbed the earlier drafts "Describing a pipeline" (old 04) and "Raw video" (old 05).
+Episodes 06-12 keep their old numbers until they are rewritten; 05 is free for now.
+
 ## Publishing order
 
-Playlist in numeric order. CONCEPT episodes (01, 02, 05, 07, 10) are the search-traffic
+Playlist in numeric order. CONCEPT episodes (01, 02, 04, 07, 10) are the search-traffic
 entry points. MEMBRANE episodes refer back to them in one sentence and a card on screen,
 they don't repeat the theory.
 
 If publishing weekly, a good pairing is a CONCEPT episode on Monday and the related MEMBRANE
-one on Thursday (01+02 → 03+04, 05 → 06, 07+08 → 09, 10 → 11+12).
+one on Thursday (01+02 → 03, 04 → 06, 07+08 → 09, 10 → 11+12).
 
 ## Inspirations (style, not content)
 

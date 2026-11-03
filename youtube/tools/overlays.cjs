@@ -58,7 +58,7 @@ body { font-family:'DM Sans', sans-serif; color:var(--navy); padding:0; margin:0
 .vcol .box { height:112px; display:flex; flex-direction:column; justify-content:center; padding:0 20px; }
 .vcol .stream { margin:0; }
 .varrow { width:16px; height:40px; flex:none; }
-.vmerge { flex:none; display:block; }
+.vmerge { flex:none; display:block; overflow:visible; }  /* the arrowheads sit on the viewBox edge */
 .box small { display:block; font-size:21px; font-weight:400; opacity:.8; margin-top:2px; }
 /* step highlight (the agreed style): current element navy, everything else at 70 % */
 .hlC .box.hl { background:var(--navy); color:#fff; box-shadow:none; }

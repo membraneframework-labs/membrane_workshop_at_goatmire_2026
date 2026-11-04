@@ -92,21 +92,29 @@ const css = `
 
 /* terminal panel */
 .term { background:#0b1440; color:#dfe6f7; border-radius:18px; padding:30px 38px; font-family:'JetBrains Mono', monospace;
-.term.structs { font-size:27px; line-height:1.6; }
         font-variant-ligatures:none; font-size:24px; line-height:1.6; white-space:pre; }
 .term .d { opacity:.55; }
+/* code panels for the stream format structs */
+.code2 { display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:stretch; }
+.code2.stacked { grid-template-columns:1fr; gap:28px; }
+.code { position:relative; flex:1 1 0; background:#0b1440; color:#dfe6f7; border-radius:18px; padding:30px 40px 30px 36px; font-family:'JetBrains Mono', monospace;
+        font-variant-ligatures:none; font-size:30px; line-height:1.55; white-space:pre; }
+.code .m { color:#ffd166; }   /* module name */
+.code .k { color:#9ad3ff; }   /* keys */
+.code .a { color:#d4a6ff; }   /* atoms */
+.code .n { color:#ffb86b; }   /* numbers */
+.code .c { color:#8fe3c0; }   /* nil, true */
+.code .p { color:#dfe6f7; }   /* braces */
 .term .hl { background:#87cce8; color:#0b1440; font-weight:700; border-radius:6px; padding:0 8px; margin:0 -2px; }
 .terms { display:flex; flex-direction:column; gap:28px; }
 
-/* pipeline without a muxer: two branches, tops aligned */
-.vcols.top { align-items:flex-start; }
 `
 
 // ---------- small helpers ----------
 const sp = (cls, t) => `<span class="${cls}">${t}</span>`
 
 // ---------- 01 hex dump ----------
-// Real bytes of video.raw written by example/ivf_mp3_to_raw.exs (I420, 480x270, 194 400 bytes per frame):
+// Real bytes of the unscaled video.raw of an earlier run (notes/facts.md, section C), 480x270 I420, 194 400 bytes per frame (I420, 480x270, 194 400 bytes per frame):
 //   xxd -s $((194400*100 + 480*120 + 160)) -l 160 video.raw
 // frame 100, row 120 of the Y plane, columns 160..319: a slice through the title card, so the bytes vary.
 const HEXROWS = [
@@ -278,44 +286,44 @@ const interleaved = `<div class="samples">
 </div>`
 
 // ---------- 08 stream format cards ----------
-const streamFormat = `<div class="pills">
-  <div class="pill"><h3>Raw video</h3><div><b>width</b></div><div><b>height</b></div><div><b>pixel format</b></div></div>
-  <div class="pill"><h3>Raw audio</h3><div><b>sample rate</b></div><div><b>sample format</b></div><div><b>channels</b></div></div>
+// the real stream format structs, formatted the way a formatter prints them and coloured like an
+// editor: module name, keys, atoms, numbers, nil/true each in their own colour; the field order is
+// the struct's own (notes/facts.md, item 12).
+const tok = (cls, t) => `<span class="${cls}">${t}</span>`
+const field = (k, v, cls, last = false) => `  ${tok('k', k + ':')} ${tok(cls, v)}${last ? '' : ','}\n`
+const structCode = (mod, fields) =>
+  `${tok('m', '%' + mod)}${tok('p', '{')}\n${fields.map(([k, v, c], i) => field(k, v, c, i === fields.length - 1)).join('')}${tok('p', '}')}`
+const rawVideoStruct = structCode('Membrane.RawVideo', [
+  ['width', '480', 'n'], ['height', '270', 'n'], ['framerate', 'nil', 'c'], ['pixel_format', ':I420', 'a'], ['aligned', 'true', 'c'],
+])
+const rawAudioStruct = structCode('Membrane.RawAudio', [
+  ['sample_rate', '44_100', 'n'], ['sample_format', ':s16le', 'a'], ['channels', '2', 'n'],
+])
+const streamFormatHtml = cls => `<div class="code2 ${cls}">
+  <div class="code">${rawVideoStruct}</div>
+  <div class="code">${rawAudioStruct}</div>
 </div>`
-
-// alternative: the real stream format structs this pipeline produces (notes/facts.md, item 12),
-// the fields the script names highlighted, in the terminal style of 10-terminal
-const kw = t => sp('hl', t)
-const structs = `<div class="term structs">%Membrane.RawVideo{${kw('width: 480')}, ${kw('height: 270')}, ${kw('pixel_format: :I420')},
-                   framerate: nil, aligned: true}
-
-%Membrane.RawAudio{${kw('sample_rate: 44_100')}, ${kw('sample_format: :s16le')}, ${kw('channels: 2')}}</div>`
+const streamFormat = streamFormatHtml('')
+const streamFormatStacked = streamFormatHtml('stacked')
 
 // ---------- 07 the sentence ----------
 const sentence = `<div class="huge">Raw data doesn't describe itself.</div>`
 
 // ---------- 09 pipeline ----------
+// one chain: decode to raw, scale down to a third, encode back to H.264, mux into an MP4
 const pipeline = (() => {
   const b = (t, sub) => box(t + (sub ? `<small>${sub}</small>` : ''))
-  const video = vchain(stream('bbb_vp8.ivf'), b('File.Source'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'), b('File.Sink'), stream('video.raw'))
-  const audio = vchain(stream('bbb.mp3'), b('File.Source'), b('Transcoder', 'MP3 → raw audio'), b('File.Sink'), stream('audio.raw'))
-  return `<div class="vcols top">${video}${audio}</div>`
+  return vchain(stream('bbb_vp8.ivf'), b('File.Source'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'),
+    b('Scaler', '480 × 270 → 160 × 90'), b('Transcoder', 'raw video → H.264'), b('MP4.Muxer'), b('File.Sink'), stream('small.mp4'))
 })()
 
 // ---------- 10 terminal ----------
 const h = t => sp('hl', t)
-const SIZES = [['bbb_vp8.ivf', '1031399'], ['video.raw', '157852800'], ['bbb.mp3', '529492'], ['audio.raw', '5833728']]  // byte counts
-const listing = `${sp('d', '$ ')}wc -c ${SIZES.map(([n]) => n).join(' ')}
-${SIZES.map(([n, s]) => `${s.padStart(9)} ${n}`).join('\n')}`  // as wc -c prints them, total line left out
-const ffplayVideo = `${sp('d', '$ ')}ffplay ${h('-f rawvideo')} ${h('-pixel_format yuv420p')} ${h('-video_size 480x270')} ${h('-framerate 25')} video.raw`
-const ffplayAudio = `${sp('d', '$ ')}ffplay ${h('-f s16le')} ${h('-ar 44100')} ${h('-ch_layout stereo')} audio.raw`
-const terminalOne = `<div class="term">${listing}
-
-${ffplayVideo}
-${ffplayAudio}</div>`
-const terminalSizes = `<div class="term">${listing}</div>`
-const terminalFfplay = `<div class="term">${ffplayVideo}
-${ffplayAudio}</div>`
+// real ffprobe output for small.mp4 (notes/facts.md, section H), condensed to the lines that matter
+const terminalOne = `<div class="term">${sp('d', '$ ')}ffprobe -hide_banner small.mp4
+${sp('d', "Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'small.mp4':")}
+${sp('d', '  Duration: 00:00:32.48')}
+  Stream #0:0: Video: ${h('h264')} (avc1), yuv420p, ${h('160x90')}, 25 fps</div>`
 
 // ---------- 11 takeaway ----------
 const takeaway = `<div class="big">Raw data doesn't describe itself.</div>
@@ -328,8 +336,8 @@ const graphics = [
   ['04-i420', i420],
   ['05-samples', samples],
   ['06-interleaved', interleaved],
-  ['08-stream-format', streamFormat],
   ['07-sentence', sentence],
+  ['08-stream-format', streamFormat],
   ['09-pipeline', pipeline],
   ['10-terminal', terminalOne],
   ['11-takeaway', takeaway],
@@ -338,10 +346,8 @@ const graphics = [
 render(graphics, OUT, null, css).then(() => {
   if (process.argv.includes('--preview')) {
     return render([
-      ['10-terminal-A-one-panel', terminalOne],
-      ['10-terminal-sizes', terminalSizes], ['10-terminal-ffplay', terminalFfplay],
       ['03-rgb-B-one-pixel', rgbOne],
-      ['08-stream-format-B-structs', structs],
+      ['08-stream-format-B-stacked', streamFormatStacked],
     ], path.join(OUT, '_preview'), null, css)
   }
 })

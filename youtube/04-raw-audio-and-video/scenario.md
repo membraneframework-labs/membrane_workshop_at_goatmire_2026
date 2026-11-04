@@ -6,8 +6,8 @@
 | Length | 7-8 min |
 | SEO title | "Raw video and raw audio explained: frames, pixel formats, samples and PCM (Multimedia 101 #4)" |
 | Keywords | raw video format, what is a video frame, yuv420 vs rgb, i420 pixel format, pcm audio explained, sample rate and bit depth, raw audio samples |
-| Source | Ch. 2 slides "Raw video and RGB"; DEEP_DIVE Ch. 2 "RGB", "Resolution", "Pixel format"; DEEP_DIVE Ch. 3 "Timestamps" (raw audio has a fixed sample size); `deps/membrane_raw_video_format`, `deps/membrane_raw_audio_format`, the Transcoder's raw output formats; `notes/facts.md` for every verified detail and number |
-| On screen | Overlays from `images/` (see `images/README.md` for the file ↔ timestamp map): a hex dump of a raw frame, a strip of pixels folded into rows in three steps, the two by two RGB frame, the three planes of I420, a wave with its samples, interleaved stereo samples, the sentence card, the two stream format cards, the pipeline with two branches, a terminal with the file sizes and the ffplay commands, the takeaway. Code comes from the Keynote presentation. |
+| Source | Ch. 2 slides "Raw video and RGB"; DEEP_DIVE Ch. 2 "RGB", "Resolution", "Pixel format"; DEEP_DIVE Ch. 3 "Timestamps" (raw audio has a fixed sample size); `deps/membrane_raw_video_format`, `deps/membrane_raw_audio_format`, the Transcoder's raw output format, `deps/membrane_ffmpeg_swscale_plugin` (the scaler); `notes/facts.md` for every verified detail and number |
+| On screen | Overlays from `images/` (see `images/README.md` for the file ↔ timestamp map): a hex dump of a raw frame, a strip of pixels folded into rows in three steps, the two by two RGB frame, the three planes of I420, a wave with its samples, interleaved stereo samples, the sentence card, the two stream format structs, the pipeline with the scaler, a terminal with ffprobe on the result, the takeaway. Code comes from the Keynote presentation. |
 
 ---
 
@@ -82,107 +82,99 @@ real bytes from the audio file.**
 
 > Another thing you need to read raw audio, is the number of channels. Stereo has two, left and
 > right, and in memory they are usually interleaved: one sample for the left, one for the right, and
-> so on. So one second of stereo with two channels takes 2 times more space, than one second of
-> mono audio. With 2 bytes per sample and a standard sampling rate, it takes almost 2 megabytes.
-> That is far less than video, but still about ten times what one second of MP3 takes.
+> so on. So one second of stereo with two channels takes 2 times more space, than one second of mono
+> audio. With 2 bytes per sample and a standard sampling rate, it is almost 2 megabytes. That is
+> far less than video, but still about ten times what one second of MP3 takes.
 
 **[4:05] Overlay `07-sentence.png`, large: "Raw data doesn't describe itself."**
 
 > And this is what video and audio have in common. Raw data doesn't describe itself. A raw frame has
-> no embedded metadata, and neither does a block of samples. The bytes don't say how wide the picture is,
-> whether it's RGB or I420, or how many channels the audio has. You need these information
-> if you want to understand or process it in any way. In case of raw media, all of that has to travel 
-> next to bytes representing pixels or samples.
+> no embedded metadata, and neither does a block of samples. The bytes don't say how wide the
+> picture is, whether it's RGB or I420, or how many channels the audio has. You need these
+> information if you want to understand or process it in any way. And all of that
+> has to travel alongside to bytes representing pixels or samples, outside of multimedia stream itself. 
 
-**[4:35] Overlay `08-stream-format.png`: two cards, "Raw video: width, height, pixel format" and
-"Raw audio: sample rate, sample format, channels".**
+**[4:35] Overlay `08-stream-format.png`: the two real stream format structs side by side as
+formatted, syntax-coloured code: the `Membrane.RawVideo` struct with width 480, height 270,
+framerate nil, pixel_format :I420, aligned true, and the `Membrane.RawAudio` struct with
+sample_rate 44_100, sample_format :s16le, channels 2. On the "BTW" line, a YouTube card pointing
+to episode 03.**
 
 > So how does this look in Membrane?  In Membrane, you describe media processing as a graph of
 > elements, called a pipeline, where each element does one thing with the stream and passes it on.
-> (BTW, if you still don't know what Membrane is, check out this: ___)
+> (BTW, if you still don't know what Membrane is, check out this: <link to episode 03>)
 > Before any data goes from one element to the next, the element sends a thing we call a stream format.
-> Stream format describes the stream, that will be sent or received via a Membrane Pad. 
+> Stream format describes the stream, that will be sent or received via a Membrane Pad.
 > For raw video, it contains the width, the height and the pixel format. For
-> raw audio, ir provides the sample rate, the sample format and the number of channels. Then the data follows,
-> so element that receives the stream knows how to read it.
+> raw audio, it provides the sample rate, the sample format and the number of channels. 
+> Then the data follows,
+> so the element that receives the stream knows how to read it.
 
-**[5:25] Overlay `09-pipeline.png`: the pipeline, data flowing top to bottom, the video branch on
-the left (file source, IVF deserializer, Transcoder, file sink), the audio branch on the right
-(file source, Transcoder, file sink).**
+**[5:30] Overlay `09-pipeline.png`: the pipeline, data flowing top to bottom, one chain: file
+source, IVF deserializer, Transcoder (decode), scaler, Transcoder (encode), MP4 muxer, file sink,
+with the input file above and the output file below drawn as dashed stream shapes.**
 
-> Many times you will not see the raw data at all, because the Transcoder, a component that converts
-> media from one compressed format to another, decodes and encodes the stream inside itself. But you can ask it
-> for raw output instead. Here is a pipeline that decodes a video compressed with VP8 and an MP3
-> file, and writes the raw bytes of both to files.
+> In a Membrane pipeline you often don't see the raw data at all. The Transcoder, a Membrane
+> component that converts media from one format to another, decodes and encodes streams inside
+> itself, so the raw frames usually doesn't leave it. 
+> But if you want to modify the stream in any way, there is a very big chance you will need to
+> work on raw media.
+> And Here is a pipeline that decodes a video compressed with VP8,
+> and shrinks every frame to a third of its width and height. That could be useful when you run an AI model
+> on the frames and want to save computing power, or when you send the stream over a poor network.
+> We use the Transcoder twice here, once to decode and once to encode.
 
-**[5:55] Keynote presentation: the spec, built up line by line as you speak. The first sentence is
-spoken over the empty slide; from the second sentence on, each sentence corresponds to the lines
-that appear at that moment.**
+**[6:15] Keynote presentation: the spec, built up call by call as you speak. The first sentence is
+spoken over the empty slide. Then each call that appears has its own sentence or sentences, in
+this order: the file source, the deserializer, the decoder with its output options, the scaler,
+the encoder with its output options, the muxer, the sink.**
 
 ```elixir
-spec = [
-  child(:ivf_file_source, %Membrane.File.Source{location: "bbb_vp8.ivf"})
+spec =
+  child(:file_source, %Membrane.File.Source{location: "bbb_vp8.ivf"})
   |> child(:ivf_deserializer, Membrane.IVF.Deserializer)
-  |> child(:video_transcoder, Membrane.Transcoder)
+  |> child(:decoder, Membrane.Transcoder)
   |> via_out(:output,
     options: [
       output_stream_format: %Membrane.Transcoder.OutputFormat.RawVideo{pixel_format: :I420}
     ]
   )
-  |> child(:raw_video_sink, %Membrane.File.Sink{location: "video.raw"}),
-
-  child(:mp3_file_source, %Membrane.File.Source{
-    location: "bbb.mp3",
-    content_format: Membrane.MPEGAudio
-  })
-  |> child(:audio_transcoder, Membrane.Transcoder)
+  |> child(:scaler, %Membrane.FFmpeg.SWScale.Converter{output_width: 160, output_height: 90})
+  |> child(:encoder, Membrane.Transcoder)
   |> via_out(:output,
     options: [
-      output_stream_format: %Membrane.Transcoder.OutputFormat.RawAudio{
-        sample_format: :s16le,
-        sample_rate: 44_100,
-        channels: 2
-      }
+      output_stream_format: %Membrane.Transcoder.OutputFormat.H264{stream_structure: :avc1}
     ]
   )
-  |> child(:raw_audio_sink, %Membrane.File.Sink{location: "audio.raw"})
-]
+  |> child(:mp4_muxer, Membrane.MP4.Muxer.ISOM)
+  |> child(:file_sink, %Membrane.File.Sink{location: "small.mp4"})
 ```
 
-> Don't worry about the syntax, that's a topic for another episode. The first element reads the
-> video file. The video sits in a simple container called IVF, a file format that wraps the stream,
-> so the IVF deserializer unpacks the plain VP8 stream from it. Then comes the Transcoder, and
-> instead of a compressed format we ask it for raw video in I420, which is what the decoder inside
-> it produces anyway. And a file sink writes whatever comes out to disk, so this file is nothing but
-> frames, one after another.
+> Let's look at how it's written. The first element reads the video file. The video sits in a simple
+> container called IVF, a file format that wraps the stream. The IVF deserializer pulls the
+> compressed VP8 stream out of it. Then comes the first Transcoder, and instead of a compressed
+> format we ask it for raw video in I420.
 
-> The second branch reads the MP3, and tells the source what's inside, because MP3 has no container
-> to say so. Then a Transcoder again, asked for raw audio. Here we spell out every field,
-> sixteen-bit samples, forty-four thousand one hundred per second, two channels, so the file comes
-> out exactly in the format we asked for. And a file sink writes the samples to a second file.
+> Now we have raw frames. The next element is the scaler. It takes every frame and gives back a
+> frame of a hundred and sixty by ninety pixels. Storing raw frames would take too much space, so a second
+> Transcoder compresses them again, this time as H.264. A muxer packs
+> that stream into an MP4 container. And a file sink writes it to disk.
 
-**[6:55] Overlay `10-terminal.png`: a terminal panel with the byte counts of the four files
-(`wc -c`, so the spoken "hundred and fifty-eight megabytes" and "almost six megabytes" match what
-is shown), then the two ffplay commands, the format flags highlighted.**
+**[7:10] Overlay `10-terminal.png`: a terminal panel with ffprobe on the resulting MP4, condensed
+to the input, duration and stream lines, the codec and the resolution highlighted.**
 
-> When this pipeline is done, the video file is a hundred and fifty-eight megabytes for half a
-> minute of video. The VP8 file we started with is one megabyte, and the audio comes to almost six
-> megabytes against half a megabyte of MP3. And to play the video file with a player like ffplay, we
-> have to tell it everything the file doesn't say. That it's raw video, the pixel format, which
-> ffplay calls yuv420p, the resolution, and the frame rate, and then it plays. The same for the
-> audio: the sample format, the rate and the channels. Membrane itself takes the frame rate from
-> timestamps, a topic for another episode.
+<improwizacja>
 
 **[7:40] Overlay `11-takeaway.png`.**
 
 > So, a raw frame is a flat block of pixels, read with a resolution and a pixel format. Raw audio is
-> a run of samples, read with a sample rate, a sample format and the number of channels. Raw data
+> a series of samples, read with a sample rate, a sample format and the number of channels. Raw data
 > doesn't describe itself. The description travels alongside it, and in Membrane that's the stream
 > format.
 
 > Thank you for watching, and see you in the next episode.
 
-**[8:10] End**
+**[8:05] End**
 
 ---
 
@@ -193,8 +185,8 @@ is shown), then the two ffplay commands, the format flags highlighted.**
 1. The hex dump of a frame: "you can't draw this, because nothing in here says how".
 2. `[YOU: the first time you opened a .yuv or .raw file in a hex editor, or in an image viewer
    with the wrong width, and what it looked like]`
-3. `wc -c` on the raw video file next to the VP8 file it came from: a hundred and fifty-eight
-   megabytes against one.
+3. ffprobe on the small MP4 the pipeline made, next to the thought of raw frames nobody could
+   play without being told the format.
 
 **Beats:**
 
@@ -212,11 +204,12 @@ is shown), then the two ffplay commands, the format flags highlighted.**
    travel next to the bytes.
 6. In Membrane: two-sentence intro of Membrane, the stream format as that description, the two
    cards.
-7. The pipeline: the Transcoder asked for raw output instead of a compressed format; code from
-   Keynote top to bottom, every field of the raw audio format spelled out and why.
-8. On camera: the sizes in bytes, and ffplay needing the format flags because the file has none.
-   `[YOU: run it live if you like; the first frames are a flat light grey, the title card comes at
-four seconds]`
+7. The pipeline: why raw matters (an AI model on the frames, a poor network), decode to raw,
+   scale down to a third, encode again, to H.264, and mux into an MP4; code from Keynote top to
+   bottom; the scaler sends a new stream format with the new size.
+8. On camera: ffprobe on the result shows the codec and the resolution because the MP4 carries them;
+   raw frames would have needed all of that spelled out. `[YOU: play small.mp4 live if you like,
+   with -x 640 so the window is not tiny]`
 9. Takeaway, then a plain goodbye. No promise about the next topic.
 
 **What not to do:** no colour science (no colour spaces, no chroma siting, no limited range, no

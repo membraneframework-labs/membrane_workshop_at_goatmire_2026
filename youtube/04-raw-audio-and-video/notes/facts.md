@@ -504,3 +504,53 @@ Must not appear beyond a clause:
   meet most".
 - First-run wall time of `Mix.install` (log clobbered); on the order of a minute here with
   precompiled natives, longer on a machine that has to compile them.
+
+## H. The example as of 2026-11-04: `example/ivf_scale_down.exs` (replaces section C's two-branch pipeline)
+
+The author replaced the two-branch "write both raw streams to files" pipeline with one chain that
+does something with the raw frames, and then asked that the result not be raw frames on disk
+("nobody does that, it would take too much space"). The chain now decodes VP8 to raw I420, scales
+down to a third, encodes back to H.264 and muxes into an MP4. The audio branch is gone; sections C
+and D stay for the record (the hex dump of the cold open and the interleaved samples come from that
+earlier run).
+
+1. Chain: `Membrane.File.Source{location: "bbb_vp8.ivf"}` → `Membrane.IVF.Deserializer` →
+   `Membrane.Transcoder` with `via_out(:output, options: [output_stream_format:
+   %Membrane.Transcoder.OutputFormat.RawVideo{pixel_format: :I420}])` →
+   `%Membrane.FFmpeg.SWScale.Converter{output_width: 160, output_height: 90}` →
+   `Membrane.Transcoder` with `output_stream_format: %Membrane.Transcoder.OutputFormat.H264{stream_structure: :avc1}`
+   → `Membrane.MP4.Muxer.ISOM` → `Membrane.File.Sink{location: "small.mp4"}` (the last three
+   lines are the ones episode 02's example uses, verified there).
+2. The scaler: `membrane_ffmpeg_swscale_plugin` 0.16.5 (already in `mix.lock` as a dependency of
+   the Transcoder). `Membrane.FFmpeg.SWScale.Scaler` is deprecated in favour of
+   `Membrane.FFmpeg.SWScale.Converter` (`scaler.ex:2-6`), which takes `output_width`,
+   `output_height` (both must be even, `converter.ex:7-8`), `format` and `use_shm?`; input and
+   output pads accept `%RawVideo{aligned: true, pixel_format: ...}` for I420 and a few others
+   (`converter.ex:46-53`). On `handle_stream_format` it emits the input stream format with
+   `width` and `height` replaced by the output dimensions. Hence 160 × 90 rather than 240 × 135:
+   135 is odd and the converter would round it.
+3. Numbers: one scaled raw frame would be 160 × 90 × 1.5 = 21 600 B; 812 frames → 17 539 200 B
+   (17.5 MB) if written raw (measured in the previous version of the example, 2026-11-03). The
+   MP4 the current example writes is **1 428 163 B**, 351 kb/s, h264 Constrained Baseline, avc1,
+   yuv420p, 160x90, 25 fps, 32.48 s, 812 frames (`ffprobe`). It is *larger* than the 1 031 399 B
+   VP8 input despite the smaller picture, because the Transcoder's H.264 encoder runs with its
+   default rate settings; the script therefore does not compare file sizes, it compares the MP4
+   that any player opens with the raw frames nobody could open without the format.
+4. Run record (2026-11-04, same machine as section D): `elixir ivf_scale_down.exs` exits 0;
+   first run 41 s including compilation; `small.mp4` as above. `ffprobe -hide_banner small.mp4`
+   prints, verbatim (two `Metadata:` blocks left out here):
+
+   ```
+   Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'small.mp4':
+     Duration: 00:00:32.48, start: 0.000000, bitrate: 351 kb/s
+     Stream #0:0[0x1](und): Video: h264 (Constrained Baseline) (avc1 / 0x31637661), yuv420p(progressive), 160x90, 350 kb/s, SAR 1:1 DAR 16:9, 25 fps, 25 tbr, 30720 tbn (default)
+   ```
+
+   The terminal overlay condenses these three lines: it drops `start: 0.000000`, both bitrates
+   (`bitrate: 351 kb/s` on the Duration line, so nothing on screen invites a size comparison), the profile
+   `(Constrained Baseline)`, the fourcc hex `/ 0x31637661`, `(progressive)`, `SAR 1:1 DAR 16:9`, `25 tbr, 30720 tbn`, `(default)`, the `[0x1](und)` tag and the
+   Metadata blocks, and keeps every remaining token as printed.
+5. Why this example (author, 2026-11-03/04): raw data is where you can do something with the
+   media; scaling down is useful before running a model on the frames (less computing) or before
+   sending the stream over a poor network; and the result must be something real, an MP4, not raw
+   frames on disk. The audio mixer was considered and kept for a later episode.

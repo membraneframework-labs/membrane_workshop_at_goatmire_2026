@@ -17,10 +17,12 @@
 raw video file (frame 100, through the title text), a block of varied bytes with no structure to
 colour.**
 
-> These bytes are a video frame, exactly the way a decoder hands it over. A decoder is the program
-> that unpacks compressed video back into pictures. If all you had were these bytes, you couldn't
-> draw the picture, because nothing here says how wide it is or what each byte means.
-[zgrzyt ze obrazek jest w ksztalcie kwadratu]
+> These bytes are a video frame, exactly the way a decoder hands it over. If all you had were these bytes, 
+> you couldn't draw the picture, because nothing here says how these bytes map to pixels, or how wide and high
+> each frame is.
+
+[the graphics should presen a sequence of bytes one after another. It should not lay it out in the rectangle
+because raw video is just series of bytes, not a rectangle made of it.]
 **[0:20] Bumper**
 
 **[0:25] On camera**
@@ -37,16 +39,18 @@ rows and moving three along the third, the rest dimmed (on "skip the rows above 
 [?idk, maybe we could drop the last sentence of this paragraph and the graphics 3]
 > Let's start with video. A raw video stream is a series of pictures called frames, and each frame
 > is one flat block of bytes, the pixels one after another. Pixels are laid out row by row from the
-> top, left to right. So the first thing you need to know about a frame is its resolution, the width
-> and height in pixels. 
+> top, left to right. To know where each row starts and ends, you need to know frame resolution.
+> It is the width and height of a frame in pixels. 
 
 **[1:25] Overlay `03-rgb.png`: the two by two frame of four colour swatches lettered A to D,
 labelled "the picture", and under it the same frame labelled "the same frame in memory": the
 twelve bytes in a dashed strip, in threes under the letter of their pixel, tinted red, green and
 blue, with their positions 0 to 11 underneath, and the key red, green, blue.**
 
-> The second thing you need is the pixel format, which says how many bytes a pixel takes and what
-> they mean. The best-known one is RGB 888: three bytes per pixel. One byte for red, one for green and
+> Another thing you need to know about a frame is the pixel format, which says how many bytes a 
+> pixel takes and what
+> they mean. The best-known one is RGB. In RGB we usually have three bytes per pixel. 
+> One byte for red, one for green and
 > one for blue. Each of them goes from zero to two hundred and fifty-five. Here is a small frame,
 > two by two pixels. It is represented by twelve bytes, three per pixel.
 
@@ -68,24 +72,24 @@ dots labelled with their values (a peak, a point on the slope, a trough, one mor
 
 > Now let's look at raw audio. Sound is a wave, and raw audio is that wave measured at regular
 > intervals. Each measurement is called a sample, and it's just a number: how far the wave is from
-> the middle at that moment. How often you measure is the sample rate, typically forty-four thousand
-> one hundred times a second.
+> the middle at that moment. How often you measure is the sample rate, for example forty-eight thousand
+> times a second.
 
 **[3:05] Overlay `06-interleaved.png`: a row of samples labelled L, R, L, R, two bytes each, with
 real bytes from the audio file.**
 
-> Then you need the sample format: how big each number is and how to read it. Most of the time
-> that's sixteen-bit integers. That means two bytes per sample.
+> Then you need the sample format: how big each sample is and how to read it. For instance,
+> that's sixteen-bit little-endian integers. That means two bytes per sample.
 
-> Another thing you need to read raw audio is the number of channels. Stereo has two, left and
+> Another thing you need to know to read raw audio is the number of channels. Stereo has two, left and
 > right, and in memory they are usually interleaved: one sample for the left, one for the right, and
 > so on. So one second of stereo takes twice the space of one second of mono. With two bytes per
-> sample and that sample rate, it comes to about a hundred and seventy-six kilobytes. That is far
+> sample and the most typical sample rate, it comes to about a hundred and seventy-six kilobytes. That is far
 > less than video, but still about ten times what one second of MP3 takes.
 
 **[3:50] Overlay `07-sentence.png`, large: "Raw data doesn't describe itself."**
 
-> And this is what video and audio have in common. Raw data doesn't describe itself. A raw frame has
+> There is one thing that video and audio have in common. Raw data doesn't describe itself. A raw frame has
 > no embedded metadata, and neither does a block of samples. The bytes don't say how wide the
 > picture is, whether it's RGB or I420, or how many channels the audio has. You need this
 > information to understand or process the data in any way. And all of it has to travel alongside
@@ -98,7 +102,7 @@ sample_rate 44_100, sample_format :s16le, channels 2. On "an episode about it in
 YouTube card pointing to episode 03.**
 
 > So how does this look in Membrane? In Membrane, you describe media processing as a graph of
-> elements, called a pipeline, where each element does one thing with the stream and passes it on.
+> elements, called a pipeline. Each element in this graph does one thing with the stream and passes it on.
 > By the way, if you don't know Membrane yet, there's an episode about it in this series. Before any
 > data goes from one element to the next, the element sends a thing we call a stream format. The
 > stream format describes the stream that is about to flow from one element to the next. For raw
@@ -112,9 +116,9 @@ with the input file above and the output file below drawn as dashed stream shape
 
 > In a Membrane pipeline you often don't see the raw data at all. The Transcoder, a Membrane
 > component that converts media from one format to another, decodes and encodes streams inside
-> itself, so the raw frames usually doesn't leave it. But if you want to modify the stream in any
-> way, there is a very big chance you will need to work on raw media. And Here is a pipeline that
-> decodes a video compressed with VP8, and shrinks every frame to a third of its width and height.
+> itself, so the raw frames usually don't leave it. But if you want to modify the stream in any
+> way, there is a very big chance you will need to work on raw media. And here is a pipeline that
+> decodes a video compressed with VP8, and converts the stream to lower resolution.
 > That could be useful when you run an AI model on the frames and want to save computing power, or
 > when you send the stream over a poor network. We use the Transcoder twice here, once to decode and
 > once to encode.
@@ -145,15 +149,15 @@ spec =
   |> child(:file_sink, %Membrane.File.Sink{location: "small.mp4"})
 ```
 
-> Let's look at how it's written. The first element reads the video file. The video sits in a simple
-> container called IVF, a file format that wraps the stream. The IVF deserializer pulls the
+> Let's take a look at how it's written. The first element reads the video file. The video sits in a simple
+> container called IVF. The IVF deserializer pulls the
 > compressed VP8 stream out of it. Then comes the first Transcoder, and instead of a compressed
-> format we ask it for raw video in I420.
+> format we ask it to produce raw video.
 
 > Now we have raw frames. The next element is the scaler. It takes every frame and gives back a
 > frame of a hundred and sixty by ninety pixels. Storing raw frames would take too much space, so a
 > second Transcoder compresses them again, this time as H.264. A muxer packs that stream into an MP4
-> container. And a file sink writes it to disk.
+> container and a file sink writes it to disk.
 
 **[7:00] Overlay `10-terminal.png`: a terminal panel with ffprobe on the resulting MP4, condensed
 to the input, duration and stream lines, the codec and the resolution highlighted.**
@@ -162,9 +166,9 @@ to the input, duration and stream lines, the codec and the resolution highlighte
 
 **[7:00] Overlay `11-takeaway.png`.**
 
-> So, a raw frame is a flat block of pixels, read with a resolution and a pixel format. Raw audio is
+> So, a raw frame is a flat block of pixels, and to read it, you need to know a resolution and a pixel format. Raw audio is
 > a series of samples, read with a sample rate, a sample format and the number of channels. Raw data
-> doesn't describe itself. The description travels alongside it, and in Membrane that's the stream
+> doesn't describe itself. The metadata describing it travels out of band, and in Membrane that's the stream
 > format.
 
 > Thank you for watching, and see you in the next episode.

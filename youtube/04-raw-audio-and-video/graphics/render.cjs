@@ -9,10 +9,13 @@ const OUT = path.resolve(__dirname, '..', 'images')
 // ---------- episode-specific styles ----------
 const css = `
 /* hex dump of a raw frame: no structure, nothing to colour */
-.hexgrid { font-family:'JetBrains Mono', monospace; font-variant-ligatures:none; font-size:27px; line-height:1.9; white-space:nowrap; color:var(--ink); }
-.hexgrid .off { opacity:.45; margin-right:28px; }
-.hexgrid .b { padding:0 5px; }
-.hexgrid .b + .b { margin-left:4px; }
+/* the raw frame as what it is: one sequence of bytes, no rows, no offsets; it runs off both edges
+   of the card (the ends fade out) so it reads as a stream that continues */
+.hexstrip { width:1240px; overflow:hidden; font-family:'JetBrains Mono', monospace; font-variant-ligatures:none; font-size:30px;
+            line-height:1.6; white-space:nowrap; color:var(--ink);
+            -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 110px, #000 calc(100% - 110px), transparent 100%);
+            mask-image:linear-gradient(90deg, transparent 0, #000 110px, #000 calc(100% - 110px), transparent 100%); }
+.hexstrip .b { display:inline-block; padding:0 7px; }
 
 /* pixels folded into rows */
 .rows { display:flex; flex-direction:column; align-items:center; }
@@ -129,8 +132,9 @@ const HEXROWS = [
   ['012983a0', '6d 80 8d 9c a2 9c 96 96 8c 6b 65 6d 72 88 9a 9a'],
   ['012983b0', '99 98 9d 8d 77 66 67 63 63 8a 8f 67 69 71 64 82'],
 ]
-const hexdump = `<div class="hexgrid">${HEXROWS.map(([off, bs]) =>
-  `<div><span class="off">${off}</span>${bs.split(' ').map(b => `<span class="b">${b}</span>`).join('')}</div>`).join('')}</div>`
+const HEXBYTES = HEXROWS.map(([, bs]) => bs).join(' ').split(' ')
+// start a few bytes in so the strip is cut mid-sequence at both ends
+const hexdump = `<div class="hexstrip" style="margin-left:-60px">${HEXBYTES.slice(0, 48).map(b => `<span class="b">${b}</span>`).join('')}</div>`
 
 // ---------- 02 pixels folded into rows ----------
 // a 6 x 4 picture: two rows of sky with a sun, two rows of ground
@@ -331,7 +335,7 @@ const takeaway = `<div class="big">Raw data doesn't describe itself.</div>
 
 const graphics = [
   ['01-hexdump', hexdump],
-  ['02-rows-1', rows(1)], ['02-rows-2', rows(2)], ['02-rows-3', rows(3)],
+  ['02-rows-1', rows(1)], ['02-rows-2', rows(2)],  // rows(3), the found pixel, was cut with its sentence
   ['03-rgb', rgb],
   ['04-i420', i420],
   ['05-samples', samples],

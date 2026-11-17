@@ -13,7 +13,8 @@
 
 ## Version A (detailed)
 
-**[0:00] Cold open. On camera, the arithmetic builds up on screen as you say it.**
+**[0:00] Cold open. On camera. Overlays `01-math-1.png` to `01-math-4.png`: the arithmetic builds
+up on screen as you say it, one line per step.**
 
 > Let's do some quick math. A full HD frame is nineteen-twenty by ten-eighty pixels, so about
 > two million pixels. Each pixel needs three bytes, for red, green and blue. That's about six
@@ -31,18 +32,21 @@
 > people mean when they say "transcoding". At the end I'll show you how all of this looks in
 > Membrane.
 
-**[0:45] The concept: codec. Diagram: raw → [encoder] → coded stream → [decoder] → raw**
+**[0:45] Overlay `02-codec-diagram.png`: raw media → encoder → coded stream → decoder → raw
+media.**
 
 > A codec is really two programs. One is the encoder: you give it raw video, it compresses it.
 > The other is the decoder: you give it the compressed stream, it gives you back frames you can
 > show.
 
-**[1:00] Numbers on screen: 187 MB/s → ~0.5 MB/s**
+**[1:00] Overlay `03-compression-ratio.png`: 187 MB/s → 0.5 MB/s, almost 400 times smaller.**
 
 > And the compression is huge. Those 187 megabytes per second turn into something like half a
 > megabyte per second for a stream that still looks fine. That's almost four hundred times smaller.
 
-**[1:15] How is that possible? An enumeration builds up on screen, one line per trick as you reach it:**
+**[1:15] Overlays `04-three-tricks-1.png` to `04-three-tricks-3.png`: an enumeration builds up on
+screen, one line per trick as you reach it. On trick 1, the full-frame `05-sky.png` (a plain blue
+sky, 1920×1080) can play behind or next to the list:**
 **1. Neighbour pixels are similar (blue sky next to it). 2. Neighbour frames are similar. 3. Human senses are not perfect.**
 
 > So how do you throw away ninety-nine percent of the data and still get a picture? There are
@@ -60,7 +64,7 @@
 > That third trick is what makes most codecs lossy. What comes out of the encoder usually isn't
 > exactly what went in, but just close enough that you don't notice. 
 
-**[2:00] Names. The codec table from the slide.**
+**[2:00] Overlay `07-codec-names.png`: video and audio codec names, two cards.**
 
 > Let's go through a few codecs names you'll run into. For video there's H.264. It's by far the most
 > widely supported video format out there, almost every device you own can decode it. Then there's VP8,
@@ -77,7 +81,12 @@
 > the next episode. MP3 is a bit special here, because you can just put it in the file, with no extra
 > container needed.
 
-**[2:45] Transcoding. Both diagrams from the slide: "VP8 stream → VP8 decoder → raw video frames → H.264 encoder → H.264 stream", and below it "MP3 stream → MP3 decoder → raw audio samples → AAC encoder → AAC stream". The decoder, raw media and encoder are grouped in a box labelled "transcoding".**
+**[2:45] Overlays `08-transcoding-video.png` (on "decode the VP8 into raw frames"), then
+`09-transcoding-audio.png` (on "MP3 goes through a decoder"), then `10-transcoding-both.png` (on
+"something important about that middle step"): "VP8 stream → VP8 decoder → raw video frames →
+H.264 encoder → H.264 stream", and below it "MP3 stream → MP3 decoder → raw audio samples → AAC
+encoder → AAC stream". The decoder, raw media and encoder are grouped in a box labelled
+"transcoding".**
 
 > Now, say you have VP8 and you need H.264. You can't convert one directly into the other.
 > What you do is decode the VP8 into raw frames, and then encode those raw frames into H.264.
@@ -86,14 +95,16 @@
 
 > And there's something important about that middle step.
 
-**[3:05] On screen, large: "In the middle, you hold raw media."**
+**[3:05] Overlay `11-raw-in-the-middle.png`, large: "In the middle, you hold raw media."**
 
 > In the middle, you hold raw media. That's the only place where you can actually look at the
 > picture or change it. Encoded data is opaque, you can't do much with it.
 > So everything interesting you can do to video, like improving colors, or running
 > AI inference, happens on the raw frames between a decoder and an encoder.
 
-**[3:25] In Membrane**
+**[3:25] Overlay `12-pipeline-of-elements.png`: file source → decoder → encoder → file sink, with
+a caption. Then `13-transcoder-is-the-box.png` when the Transcoder is named: the audio transcoding
+diagram with the box labelled `Membrane.Transcoder`.**
 
 > So how does this look in Membrane? 
 > Well, first, let me tell you what Membrane is. Membrane is an open-source multimedia framework written
@@ -122,7 +133,7 @@
 > into two Transcoders and put your own element in between.
 
 
-**[4:30] Takeaway + next**
+**[4:30] Overlay `14-takeaway.png`: the two takeaway sentences.**
 
 > So, a codec is an encoder and a decoder, and the raw media in the middle is where you usually work.
 > In the next episode we'll look at containers: how encoded streams end up in a file together,

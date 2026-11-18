@@ -97,6 +97,13 @@ const css = `
 .term { background:#0b1440; color:#dfe6f7; border-radius:18px; padding:30px 38px; font-family:'JetBrains Mono', monospace;
         font-variant-ligatures:none; font-size:24px; line-height:1.6; white-space:pre; }
 .term .d { opacity:.55; }
+/* shorter pipeline variants */
+.compact .vcol .box { height:84px; font-size:26px; }
+.compact .vcol .box small { font-size:19px; margin-top:0; }
+.compact .varrow { height:26px; }
+.compact .vcol .stream { padding:10px 26px; font-size:26px; }
+.snake { display:flex; align-items:flex-start; gap:0; }
+.snake .conn { flex:none; display:block; overflow:visible; }
 /* code panels for the stream format structs */
 .code2 { display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:stretch; }
 .code2.stacked { grid-template-columns:1fr; gap:28px; }
@@ -321,6 +328,31 @@ const pipeline = (() => {
     b('Scaler', '480 × 270 → 160 × 90'), b('Transcoder', 'raw video → H.264'), b('MP4.Muxer'), b('File.Sink'), stream('small.mp4'))
 })()
 
+// shorter variants of 09-pipeline for the author to choose from (rendered into _preview/)
+// A: compact vertical: lower tiles, shorter arrows, smaller type
+// B: compact vertical, the file names inside the first and last tile instead of the stream shapes
+// C: two columns, the chain continues from the bottom of the left column to the top of the right one
+const pipeA = (() => {
+  const b = (t, sub) => box(t + (sub ? `<small>${sub}</small>` : ''))
+  return `<div class="compact">${vchain(stream('bbb_vp8.ivf'), b('File.Source'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'),
+    b('Scaler', '480 × 270 → 160 × 90'), b('Transcoder', 'raw video → H.264'), b('MP4.Muxer'), b('File.Sink'), stream('small.mp4'))}</div>`
+})()
+const pipeB = (() => {
+  const b = (t, sub) => box(t + (sub ? `<small>${sub}</small>` : ''))
+  return `<div class="compact">${vchain(b('File.Source', 'bbb_vp8.ivf'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'),
+    b('Scaler', '480 × 270 → 160 × 90'), b('Transcoder', 'raw video → H.264'), b('MP4.Muxer'), b('File.Sink', 'small.mp4'))}</div>`
+})()
+const pipeC = (() => {
+  const b = (t, sub) => box(t + (sub ? `<small>${sub}</small>` : ''))
+  const left = vchain(stream('bbb_vp8.ivf'), b('File.Source'), b('IVF.Deserializer'), b('Transcoder', 'VP8 → raw video'), b('Scaler', '480 × 270 → 160 × 90'))
+  const right = vchain(b('Transcoder', 'raw video → H.264'), b('MP4.Muxer'), b('File.Sink'), stream('small.mp4'))
+  // the connector: out of the scaler's right edge, up the gap, into the encoder's left edge
+  const conn = `<svg class="conn" width="120" height="700" viewBox="0 0 120 700">
+    <path d="M0,644 L60,644 L60,56 L104,56" fill="none" stroke="${colors.navy}" stroke-width="2"/>
+    <polygon points="104,50 118,56 104,62" fill="${colors.navy}"/></svg>`
+  return `<div class="snake"><div class="vcol">${left}</div>${conn}<div class="vcol">${right}</div></div>`
+})()
+
 // ---------- 10 terminal ----------
 const h = t => sp('hl', t)
 // real ffprobe output for small.mp4 (notes/facts.md, section H), condensed to the lines that matter
@@ -352,6 +384,7 @@ render(graphics, OUT, null, css).then(() => {
     return render([
       ['03-rgb-B-one-pixel', rgbOne],
       ['08-stream-format-B-stacked', streamFormatStacked],
+      ['09-pipeline-A-compact', pipeA], ['09-pipeline-B-compact-no-files', pipeB], ['09-pipeline-C-two-columns', pipeC],
     ], path.join(OUT, '_preview'), null, css)
   }
 })

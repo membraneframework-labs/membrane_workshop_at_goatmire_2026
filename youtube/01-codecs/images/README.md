@@ -25,6 +25,7 @@ size, so cut from one to the next as the line is spoken and nothing jumps.
 | `11-raw-in-the-middle` | 3:05 | Text card: "In the middle, you hold raw media." |
 | `12-pipeline-of-elements` | 3:25 | file source → decoder → encoder → file sink, with a caption |
 | `13-transcoder-is-the-box` | 3:25 | The audio transcoding diagram with the box labelled `Membrane.Transcoder` |
+| `13b-transcoder-is-the-box-transcoding` | 3:25 | The same, with "transcoding" written under the box: the box is the Transcoder, what it does is transcoding. An alternative to `13`, which is unchanged |
 | `14-takeaway` | 4:30 | The two takeaway sentences |
 
 There is no `06`: the motion-vector frame was dropped. Code snippets are not here on purpose:

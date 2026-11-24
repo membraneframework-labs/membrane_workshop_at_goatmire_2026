@@ -132,14 +132,18 @@ spec =
   |> child(:decoder, Membrane.Transcoder)
   |> via_out(:output,
     options: [
-      output_stream_format: %Membrane.Transcoder.OutputFormat.RawVideo{pixel_format: :I420}
+      output_stream_format: 
+        %Membrane.Transcoder.OutputFormat.RawVideo{pixel_format: :I420}
     ]
   )
-  |> child(:scaler, %Membrane.FFmpeg.SWScale.Converter{output_width: 160, output_height: 90})
+  |> child(:scaler, %Membrane.FFmpeg.SWScale.Converter{
+    output_width: 160, 
+    output_height: 90})
   |> child(:encoder, Membrane.Transcoder)
   |> via_out(:output,
     options: [
-      output_stream_format: %Membrane.Transcoder.OutputFormat.H264{stream_structure: :avc1}
+      output_stream_format: 
+        %Membrane.Transcoder.OutputFormat.H264{stream_structure: :avc1}
     ]
   )
   |> child(:mp4_muxer, Membrane.MP4.Muxer.ISOM)

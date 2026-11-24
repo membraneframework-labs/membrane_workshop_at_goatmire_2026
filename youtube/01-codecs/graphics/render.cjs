@@ -6,6 +6,13 @@ const OUT = path.resolve(__dirname, '..', 'images')
 
 const transcoding = (inp, dec, raw, enc, out, label = 'transcoding', hl = false) =>
   chain(stream(inp), group(label, chain(box(dec), stream(raw), box(enc)), hl), stream(out))
+// the same diagram with a second label under the box (13b): the box is the Transcoder, what it does is transcoding
+const under = (html, text) => `<div class="under">${html}<div class="underlbl">${text}</div></div>`
+const transcodingUnder = (inp, dec, raw, enc, out, label, hl, underText) =>
+  `<div style="padding-bottom:54px">${chain(stream(inp), under(group(label, chain(box(dec), stream(raw), box(enc)), hl), underText), stream(out))}</div>`
+const css = `
+.under { position:relative; }
+.underlbl { position:absolute; left:0; right:0; top:100%; margin-top:12px; text-align:center; font-size:34px; font-weight:500; color:var(--ink); }`
 
 const video = (label, hl) => transcoding('VP8 stream', 'VP8<br>decoder', 'raw video<br>frames', 'H.264<br>encoder', 'H.264 stream', label, hl)
 const audio = (label, hl) => transcoding('MP3 stream', 'MP3<br>decoder', 'raw audio<br>samples', 'AAC<br>encoder', 'AAC stream', label, hl)
@@ -36,10 +43,12 @@ const graphics = [
   ['11-raw-in-the-middle', `<div class="huge">In the middle,<br>you hold raw media.</div>`],
   ['12-pipeline-of-elements', chain(box('file source'), box('decoder'), box('encoder'), box('file sink')) + `<div class="caption">a pipeline: a chain of elements, each does one thing and passes the stream on</div>`],
   ['13-transcoder-is-the-box', audio('Membrane.Transcoder', true)],
+  ['13b-transcoder-is-the-box-transcoding', transcodingUnder('MP3 stream', 'MP3<br>decoder', 'raw audio<br>samples', 'AAC<br>encoder', 'AAC stream', 'Membrane.Transcoder', true, 'transcoding')],
   ['14-takeaway', `<div class="big">A codec is an encoder and a decoder.</div><div class="big" style="margin-top:14px">Raw media in the middle is where you work.</div>`],
 ]
 
-render(graphics, OUT, async (browser, outDir) => {
+const only = process.env.ONLY
+render(only ? graphics.filter(([n]) => n === only) : graphics, OUT, only ? null : async (browser, outDir) => {
   const skyPage = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1920, height: 1080 } })
   // 05: a blue sky with cumulus clouds, drawn from fractal noise so it carries no licence. Full frame.
   await skyPage.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}</style></head>
@@ -94,4 +103,4 @@ render(graphics, OUT, async (browser, outDir) => {
   const sky = await skyPage.$('.sky')
   await sky.screenshot({ path: path.join(outDir, '05-sky.png') })
   process.stdout.write('05-sky.png\n')
-})
+}, css)

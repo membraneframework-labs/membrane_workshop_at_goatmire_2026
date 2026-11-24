@@ -23,7 +23,7 @@ file-anatomy build-up); where the two differ, follow 02.
 
 ## 0. What the author wants in a transcript, distilled
 
-This section is the synthesis of every reaction the author had while episodes 00 to 03 were
+This section is the synthesis of every reaction the author had while episodes 00 to 04 were
 written: what they rejected, what they rewrote by hand, what they accepted without a word. Read it
 before drafting. The goal is a first draft they can record with only small edits. Sections 1 to 11
 hold the full rules; this is the shape of the target.
@@ -84,6 +84,33 @@ they credited concurrency to "Membrane and Elixir" without naming processes; and
 sign-off its own paragraph. Prompted changes in the same round: plain cold open with the point
 inside it, no GStreamer, graph as the one word, sentences under 30 words, vertical three-kinds
 overlay with arrows and no captions, pads overlay vertical to match, a what-Membrane-is paragraph.
+
+**How the author explains a concept (from their rewrite of episode 04).** Each fact gets its own
+plain sentence, and a definition is a separate short sentence after the term, not an apposition:
+*"you need to know the frame's resolution. That means its width and height in pixels."*, not
+"its resolution, the width and height in pixels". Facts are framed as what the viewer needs in order
+to do something: *"To know where each row starts and ends, you need to know…"*, *"Another thing you
+need to know to read raw audio is…"*, *"to read it, you need to know the resolution and the pixel
+format"*. Examples are offered as examples, not as norms: they changed "typically forty-four thousand
+one hundred" to "for example forty-eight thousand" and "most of the time that's sixteen-bit integers"
+to "for instance, sixteen-bit little-endian integers". They prefer the technical word when it is the
+right one: "metadata", "out of band", "little-endian", "RGB" without a made-up suffix. They cut
+qualifiers that only sound precise ("which is what the decoder produces anyway", "a file format that
+wraps the stream" the second time). And they still make slips of their own (a wrong number, "how
+they look like", "2 times more space, than"), which the polish pass must catch without rewriting
+their sentences: fix the slip, keep the shape.
+
+**The Membrane example must do something a real program does, and end in something real.** The
+author rejected, in this order: writing raw video and raw audio to files ("nobody does that"), and
+then writing scaled raw frames to a file ("it would take too much space"). What stayed: decode to
+raw, do one real thing with the raw frames (scale down, motivated by running an AI model on them or
+sending the stream over a poor network), encode again, mux into an MP4 a normal player opens. Before
+proposing an example, ask: would a professional ship this pipeline? If the only reason it exists is
+to show bytes, it is a demo of the episode, not an example of the practice. One element doing the
+episode's thing is enough; an AI example belongs in its own episode. Verify the output with the
+real tool (ffprobe) and never compare numbers the pipeline does not make favourable: the scaled MP4
+came out larger than the VP8 input with the encoder's defaults, so the script shows what the file
+says about itself instead of file sizes.
 
 **Fewer rules, fewer asides.** In 03 the author cut, one by one: the dangling-pads rule, the
 optional-pads clause, "the name filter is misleading", the muxer/demuxer gloss, "with an error naming
@@ -447,6 +474,16 @@ otherwise.
 
 ---
 
+**The example is a real pipeline (settled on episode 04).** It reads a real file, does the one thing
+the episode is about on the real data, and produces something a person would keep: a playable file,
+a window with the picture, sound from the speakers. Raw media written to disk is not a result; it is
+a probe. If the episode needs the viewer to see raw bytes, show them in an overlay taken from a probe
+run and keep the pipeline itself honest. Run the final script once more after every change to the
+spec and keep the measured numbers in `notes/facts.md`; the slide block must stay byte-identical to
+the script's spec.
+
+---
+
 ## 5. The working loop: writer, reviewer, finisher
 
 The author wants the best possible script and does not want to spend their own time. Tokens are
@@ -503,6 +540,21 @@ same order, same number of build-up steps, nothing highlighted that the text doe
 findings". Episode 03 needed three rounds; the first two found clipped arrowheads, unequal tile
 widths, a label running off the card, an empty second line on cards, and README rows that no longer
 matched. A quick final round (lower effort) that only re-checks the last fixes closes the loop.
+
+**When the author has rewritten a part by hand, that part is theirs.** They say so explicitly
+("what I rewrote stays as it is, touch things after line 115"). The review and polish then cover
+only the part after their edits, plus typos and English slips inside their part, which they do want
+fixed. Do not restyle their sentences, do not reorder their paragraphs, and when a reviewer finding
+lands inside their part, report it in one line instead of applying it. Their inline notes in square
+brackets (`[stiff, rephrase it]`, `[?idk, maybe drop…]`) are instructions or questions: implement
+the instruction, answer the question, and remove the note once it is dealt with. When they cut a
+sentence, cut the overlay step and the README row that existed only for it.
+
+**The author edits in VS Code while you work.** Their editor can save an older buffer over your
+change, and once it did: a whole round of fixes vanished and had to be re-applied. Before editing a
+file they may have open, check its modification time; match on the current text, never on the text
+you remember; and after a batch of edits tell them in one line what changed so they can reload. If
+they report that your changes are gone, diff against the last commit and re-apply, do not argue.
 
 **The loop ends with "no findings", not with a tired writer.** Before the hand-over, one closing
 reviewer pass over the whole Version A plus the pictures must come back empty or with nits only.
@@ -571,6 +623,24 @@ The editor pastes graphics **next to the author's head**, so they are overlays, 
   sentences, no captions that repeat what is spoken, no second line that explains the first. If a
   picture needs a sentence to be understood, redraw the picture. Keep only the words the script
   points at and the numbers that carry the point.
+- **Settled on episode 04:** a sequence of bytes is drawn as a sequence, one row running off both
+  edges of the card, not as a hex dump in rows ("raw video is just a series of bytes, not a
+  rectangle"). When a picture shows the same data twice (the picture and its bytes), label both
+  halves in two or three words ("the picture", "the same frame in memory") and tie them with
+  letters or numbers on both (A to D on the pixels and above their byte triplets; 0 to 23 on the
+  squares of the strip and the grid). Plain squares without colour read as positions; coloured
+  squares read as a picture; use the one the sentence needs. The three planes of I420 are drawn
+  from the same picture shown above them, with the chroma planes in the colours a video tool
+  shows (mid grey brightness, BT.601), and each plane carries its byte count in bold. A sound wave
+  is a plain sine, sampled so the dots sit on the peaks, a few values labelled. A struct is shown
+  as formatted, syntax-coloured code on a dark panel, with the fields in the struct's own order,
+  the two panels the same size (`display:grid; 1fr 1fr`), no labels that repeat the module name.
+  Terminal output is a real tool's real output condensed to real tokens, no bitrates when sizes
+  are not the point, broken into two lines rather than scaled down. A seven-tile pipeline is tall:
+  render compact variants (lower tiles, shorter arrows; file names inside the end tiles; two
+  columns) into `_preview/` and let the author pick; the author asked for shorter versions and
+  for them to be looked at, "when you just change the code without looking at the image it often
+  looks poorly".
 - **Verify renders at the pixel level.** Look at every PNG you produced. Check that all steps of a
   build-up have the same width and height (read the PNG header). After changing an opacity or a
   colour, confirm it landed (a sed that didn't match leaves the old PNG in place, which happened
@@ -596,7 +666,9 @@ the same size.
 README. **Stage directions in the script name the file** they refer to.
 
 **`images/README.md`:** a table with file, script time and a one-line description, then a line
-about variants, then the regenerate command. Copy the shape from episode 01.
+about variants, then the regenerate command. Copy the shape from episode 01. After every retime run
+`python3 youtube/tools/sync_readme_times.py youtube/NN-slug/scenario.md`, which copies the stage
+direction times into the table; the lint checks they agree.
 
 ---
 
